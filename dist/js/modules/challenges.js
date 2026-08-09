@@ -163,6 +163,7 @@ async function scheduleChalForWeekend(id) {
             time: selectedTime,
         });
         await sSet('cal', S.cal);
+        document.dispatchEvent(new CustomEvent('cal:changed'));
 
         if (window.gcalCreateEvent) {
             window.gcalCreateEvent(`🏆 Challenge: ${chal.t}`, targetObj.date, selectedTime);
