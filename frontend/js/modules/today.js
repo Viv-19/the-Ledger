@@ -342,9 +342,17 @@ export function renderNorthStar() {
 /* ---- Plan events (calendar events for viewed day) ---- */
 export function renderPlanEvents() {
     const wrap = document.getElementById('planEvents');
-    const evs = S.cal.events
-        .filter(e => e.date === viewDateKey)
-        .sort((a, b) => (a.time || '').localeCompare(b.time || ''));
+    const rawEvs = S.cal.events.filter(e => e.date === viewDateKey);
+    const seen = new Set();
+    const evs = [];
+    for (const e of rawEvs) {
+        const key = `${e.title}_${e.time}`;
+        if (!seen.has(key)) {
+            seen.add(key);
+            evs.push(e);
+        }
+    }
+    evs.sort((a, b) => (a.time || '').localeCompare(b.time || ''));
     if (!evs.length) { wrap.innerHTML = ''; return; }
     wrap.innerHTML =
         `<div class="section-label">Events ${viewIsToday ? 'today' : 'tomorrow'} &middot; plan around these</div>` +
@@ -353,8 +361,22 @@ export function renderPlanEvents() {
                <span class="swatch ${e.cal}"></span>
                <span class="et">${e.time ? esc(e.time) : '—'}</span>
                <span style="flex:1;">${esc(e.title)}</span>
+               <button class="icon-btn" data-delev="${e.id}">&times;</button>
              </div>`
         ).join('');
+
+    wrap.querySelectorAll('[data-delev]').forEach(b =>
+        b.addEventListener('click', async () => {
+            const ev = S.cal.events.find(x => x.id === b.dataset.delev);
+            if (ev && window.gcalDeleteEvent) {
+                window.gcalDeleteEvent(ev.title, ev.date);
+            }
+            S.cal.events = S.cal.events.filter(x => x.id !== b.dataset.delev);
+            await sSet('cal', S.cal);
+            renderPlanEvents();
+            document.dispatchEvent(new CustomEvent('cal:changed'));
+        })
+    );
 }
 
 export function wireTodaySyncButton() {

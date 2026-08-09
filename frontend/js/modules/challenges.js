@@ -155,18 +155,21 @@ async function scheduleChalForWeekend(id) {
     document.getElementById('confirmSchedModal').onclick = async () => {
         const targetObj = selectedDay === 'sat' ? weekend.sat : weekend.sun;
         
-        S.cal.events.push({
-            id: 'e_chal_' + Date.now(),
-            date: targetObj.date,
-            title: `🏆 Challenge: ${chal.t}`,
-            cal: 'personal',
-            time: selectedTime,
-        });
-        await sSet('cal', S.cal);
-        document.dispatchEvent(new CustomEvent('cal:changed'));
+        const existing = S.cal.events.find(e => e.date === targetObj.date && e.title === `🏆 Challenge: ${chal.t}`);
+        if (!existing) {
+            S.cal.events.push({
+                id: 'e_chal_' + Date.now(),
+                date: targetObj.date,
+                title: `🏆 Challenge: ${chal.t}`,
+                cal: 'personal',
+                time: selectedTime,
+            });
+            await sSet('cal', S.cal);
+            document.dispatchEvent(new CustomEvent('cal:changed'));
 
-        if (window.gcalCreateEvent) {
-            window.gcalCreateEvent(`🏆 Challenge: ${chal.t}`, targetObj.date, selectedTime);
+            if (window.gcalCreateEvent) {
+                window.gcalCreateEvent(`🏆 Challenge: ${chal.t}`, targetObj.date, selectedTime);
+            }
         }
 
         closeModal();
