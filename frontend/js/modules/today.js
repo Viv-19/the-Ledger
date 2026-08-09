@@ -333,13 +333,9 @@ export function renderNorthStar() {
     const l = project(goalProgress('long'),  NS_START, NS_LONG_DATE);
     document.getElementById('northStar').innerHTML = `
       <div class="northstar">
-        <div class="ns-head">North Star &middot; where I am, when I arrive</div>
+        <div class="ns-head">North Star Goals</div>
         ${nsRow('Convert &amp; first raise', '~₹9 LPA by Jan 2027', s, true)}
         ${nsRow('The switch', '₹15–20 LPA by Aug 2028', l, false)}
-        <div class="gwhere" style="opacity:0.65;margin-top:10px;">
-          The bar is your progress; the tick is where the clock is &mdash; stay ahead of the tick.
-          Short-term = Q1–Q2 milestones. Long-term = roadmap 50%, skills 30%, DSA 20%.
-        </div>
       </div>`;
 }
 
