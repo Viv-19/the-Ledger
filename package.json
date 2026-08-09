@@ -1,0 +1,22 @@
+{
+  "name": "the-ledger",
+  "version": "1.0.0",
+  "description": "Personal career growth, DSA 500 tracker, CV milestone, and live Google Calendar schedule application.",
+  "main": "frontend/index.html",
+  "type": "module",
+  "scripts": {
+    "dev": "npx -y http-server frontend -p 3000 -c-1",
+    "build": "node build.js",
+    "test": "node test.js",
+    "preview": "npx -y http-server dist -p 3000 -c-1"
+  },
+  "keywords": [
+    "personal-tracker",
+    "dsa-500",
+    "google-calendar-sync",
+    "codeforces",
+    "leetcode"
+  ],
+  "author": "Vivesh Kumar Singh",
+  "license": "MIT"
+}

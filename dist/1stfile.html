@@ -1,0 +1,2324 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Ledger</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg: #1E2436;
+            --surface: #272E48;
+            --surface-2: #323A5C;
+            --text: #F0EBE0;
+            --text-muted: #9BA3C4;
+            --gold: #E8A33D;
+            --rose: #C4667A;
+            --sage: #7FA684;
+            --peri: #8F96D6;
+            --sky: #5FA8D3;
+            --orchid: #C98BD9;
+            --teal: #63B0A0;
+            --border: rgba(240, 235, 224, 0.10);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            padding: 28px 18px 72px;
+        }
+
+        .wrap {
+            max-width: 760px;
+            margin: 0 auto;
+        }
+
+        header {
+            margin-bottom: 20px;
+        }
+
+        .eyebrow {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 12px;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--gold);
+            margin: 0 0 6px;
+        }
+
+        h1 {
+            font-family: 'Fraunces', serif;
+            font-weight: 600;
+            font-size: 40px;
+            margin: 0 0 6px;
+            letter-spacing: -0.01em;
+        }
+
+        .sub {
+            color: var(--text-muted);
+            font-size: 15px;
+            margin: 0;
+        }
+
+        .daybar-block {
+            margin: 24px 0 6px;
+        }
+
+        .daybar {
+            position: relative;
+            height: 14px;
+            border-radius: 7px;
+            background: linear-gradient(90deg, #E8A33D 0%, #E8B65D 18%, #8F96D6 45%, #6B72AE 65%, #4A4E7C 82%, #2A2D4A 100%);
+            box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.15);
+        }
+
+        .daybar .now-marker {
+            position: absolute;
+            top: -5px;
+            width: 24px;
+            height: 24px;
+            margin-left: -12px;
+            border-radius: 50%;
+            background: var(--bg);
+            border: 3px solid var(--text);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+            transition: left 0.4s ease;
+        }
+
+        .daybar-ticks {
+            display: flex;
+            justify-content: space-between;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 8px;
+            padding: 0 1px;
+        }
+
+        .daytype-badge {
+            display: inline-block;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 12px;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: var(--bg);
+            background: var(--gold);
+            padding: 4px 10px;
+            border-radius: 5px;
+            margin-top: 16px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 2px;
+            margin: 22px 0 20px;
+            border-bottom: 1px solid var(--border);
+            flex-wrap: wrap;
+        }
+
+        .tab {
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--text-muted);
+            background: none;
+            border: none;
+            padding: 10px 2px 12px;
+            margin-right: 20px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+        }
+
+        .tab.active {
+            color: var(--text);
+            border-bottom-color: var(--gold);
+        }
+
+        .tab:focus-visible {
+            outline: 2px solid var(--gold);
+            outline-offset: 3px;
+            border-radius: 3px;
+        }
+
+        .panel {
+            display: none;
+        }
+
+        .panel.active {
+            display: block;
+        }
+
+        .section-label {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 12px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin: 26px 0 10px;
+        }
+
+        .row-between {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 7px;
+            margin: 4px 0 6px;
+        }
+
+        .chip {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 12px;
+            letter-spacing: 0.03em;
+            color: var(--text-muted);
+            background: var(--surface);
+            border: 1px solid var(--border);
+            padding: 6px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.12s;
+        }
+
+        .chip:hover {
+            color: var(--text);
+        }
+
+        .chip.active {
+            color: var(--bg);
+            background: var(--gold);
+            border-color: var(--gold);
+            font-weight: 500;
+        }
+
+        .chip.f-office.active {
+            background: var(--gold);
+        }
+
+        .chip.f-cv.active {
+            background: var(--peri);
+        }
+
+        .chip.f-interview.active {
+            background: var(--sky);
+        }
+
+        .chip.f-mixed.active {
+            background: var(--orchid);
+        }
+
+        .chip.f-rest.active {
+            background: var(--teal);
+        }
+
+        .seg {
+            display: inline-flex;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 9px;
+            padding: 3px;
+            gap: 3px;
+        }
+
+        .seg button {
+            font-family: 'Inter';
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-muted);
+            background: none;
+            border: none;
+            padding: 6px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .seg button.active {
+            background: var(--surface-2);
+            color: var(--text);
+        }
+
+        .block-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .block {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 12px 15px;
+        }
+
+        .block.done {
+            background: var(--surface-2);
+        }
+
+        .block .time {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 12px;
+            color: var(--gold);
+            min-width: 104px;
+            flex-shrink: 0;
+        }
+
+        .block.done .time {
+            color: var(--sage);
+        }
+
+        .block .label {
+            font-size: 15px;
+            flex: 1;
+        }
+
+        .block .label .note {
+            display: block;
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        .block.done .label {
+            color: var(--text-muted);
+            text-decoration: line-through;
+            text-decoration-color: rgba(240, 235, 224, 0.35);
+        }
+
+        .check {
+            width: 20px;
+            height: 20px;
+            border-radius: 5px;
+            border: 1.5px solid var(--text-muted);
+            flex-shrink: 0;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: transparent;
+            padding: 0;
+        }
+
+        .check.checked {
+            background: var(--sage);
+            border-color: var(--sage);
+        }
+
+        .check.checked::after {
+            content: "\2713";
+            color: var(--bg);
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .habit-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 4px;
+        }
+
+        .habit {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 10px 14px;
+            cursor: pointer;
+            font-size: 14px;
+            flex: 1;
+            min-width: 150px;
+        }
+
+        .habit .dot {
+            width: 16px;
+            height: 16px;
+            border-radius: 4px;
+            border: 1.5px solid var(--text-muted);
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .habit.on .dot {
+            background: var(--gold);
+            border-color: var(--gold);
+        }
+
+        .habit.on .dot::after {
+            content: "\2713";
+            color: var(--bg);
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .notes-area {
+            width: 100%;
+            min-height: 64px;
+            resize: vertical;
+            margin-top: 4px;
+        }
+
+        .btn {
+            font-family: 'Inter', sans-serif;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text);
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 8px 14px;
+            cursor: pointer;
+        }
+
+        .btn:hover {
+            background: var(--surface);
+        }
+
+        .btn.ghost {
+            background: transparent;
+            color: var(--text-muted);
+        }
+
+        .btn.gold {
+            background: var(--gold);
+            color: var(--bg);
+            border-color: var(--gold);
+            font-weight: 600;
+        }
+
+        .btn.sm {
+            padding: 5px 10px;
+            font-size: 12px;
+        }
+
+        .btn:focus-visible {
+            outline: 2px solid var(--gold);
+            outline-offset: 2px;
+        }
+
+        .icon-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 16px;
+            padding: 4px 6px;
+            border-radius: 6px;
+            line-height: 1;
+        }
+
+        .icon-btn:hover {
+            color: var(--rose);
+            background: var(--surface);
+        }
+
+        .icon-btn.star:hover {
+            color: var(--gold);
+        }
+
+        .icon-btn.star.on {
+            color: var(--gold);
+        }
+
+        input,
+        select,
+        textarea {
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            color: var(--text);
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 8px 10px;
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: var(--gold);
+        }
+
+        input.time-in {
+            font-family: 'IBM Plex Mono', monospace;
+            width: 118px;
+        }
+
+        .edit-block {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 8px 10px;
+        }
+
+        .edit-block input.lbl {
+            flex: 1;
+        }
+
+        .edit-block .ord {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .edit-block .ord .icon-btn {
+            padding: 0 4px;
+            font-size: 12px;
+        }
+
+        .add-form {
+            background: var(--surface);
+            border: 1px dashed var(--border);
+            border-radius: 10px;
+            padding: 12px;
+            margin-top: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .add-form .fields {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .strip {
+            display: flex;
+            gap: 6px;
+        }
+
+        .strip-day {
+            flex: 1;
+            text-align: center;
+        }
+
+        .strip-bar-bg {
+            height: 46px;
+            border-radius: 6px;
+            background: var(--surface);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .strip-bar-fill {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--sage);
+            transition: height 0.3s;
+        }
+
+        .strip-label {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            color: var(--text-muted);
+            margin-top: 5px;
+        }
+
+        .strip-lab2 {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            color: var(--text);
+            margin-top: 1px;
+        }
+
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        .stat {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 14px 16px;
+        }
+
+        .stat .k {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-muted);
+        }
+
+        .stat .v {
+            font-family: 'Fraunces', serif;
+            font-size: 30px;
+            font-weight: 600;
+            margin-top: 4px;
+        }
+
+        .stat .v small {
+            font-family: 'Inter';
+            font-size: 13px;
+            color: var(--text-muted);
+            font-weight: 400;
+        }
+
+        .dots {
+            display: flex;
+            gap: 4px;
+            margin-top: 8px;
+        }
+
+        .dots span {
+            width: 12px;
+            height: 12px;
+            border-radius: 3px;
+            background: var(--surface-2);
+        }
+
+        .dots span.hit {
+            background: var(--sage);
+        }
+
+        .dots span.miss {
+            background: rgba(196, 102, 122, 0.35);
+        }
+
+        .fdots {
+            display: flex;
+            gap: 4px;
+            margin-top: 8px;
+        }
+
+        .fdots span {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: var(--surface-2);
+        }
+
+        .progress-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 4px 0 16px;
+        }
+
+        .progress-track {
+            flex: 1;
+            height: 8px;
+            border-radius: 4px;
+            background: var(--surface);
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--gold), var(--peri));
+            border-radius: 4px;
+            transition: width 0.3s;
+        }
+
+        .progress-num {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 13px;
+            color: var(--text-muted);
+            white-space: nowrap;
+        }
+
+        .chal-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .chal {
+            display: flex;
+            gap: 13px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 14px 15px;
+        }
+
+        .chal.done {
+            opacity: 0.5;
+        }
+
+        .chal-num {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 13px;
+            color: var(--text-muted);
+            min-width: 26px;
+            padding-top: 2px;
+        }
+
+        .chal-body {
+            flex: 1;
+        }
+
+        .chal-top {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 4px;
+        }
+
+        .chal-title {
+            font-family: 'Fraunces', serif;
+            font-size: 17px;
+            font-weight: 500;
+        }
+
+        .chal.done .chal-title {
+            text-decoration: line-through;
+            text-decoration-color: rgba(240, 235, 224, 0.35);
+        }
+
+        .tag {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            padding: 2px 7px;
+            border-radius: 4px;
+            color: var(--bg);
+        }
+
+        .tag.Explore {
+            background: var(--gold);
+        }
+
+        .tag.Physical {
+            background: var(--sage);
+        }
+
+        .tag.Discipline {
+            background: var(--rose);
+        }
+
+        .tag.Skill {
+            background: var(--peri);
+        }
+
+        .tag.Social {
+            background: var(--sky);
+        }
+
+        .tag.Create {
+            background: var(--orchid);
+        }
+
+        .tag.Reset {
+            background: var(--teal);
+        }
+
+        .tag.E {
+            background: var(--sage);
+        }
+
+        .tag.M {
+            background: var(--gold);
+        }
+
+        .tag.H {
+            background: var(--rose);
+        }
+
+        .badge-today {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            color: var(--gold);
+            border: 1px solid var(--gold);
+            padding: 1px 6px;
+            border-radius: 4px;
+        }
+
+        .chal-blurb {
+            font-size: 13.5px;
+            color: var(--text-muted);
+            line-height: 1.45;
+            margin: 0;
+        }
+
+        .chal-x {
+            margin-left: auto;
+        }
+
+        .subnav {
+            display: flex;
+            gap: 6px;
+            margin: 4px 0 16px;
+            flex-wrap: wrap;
+        }
+
+        .subnav .btn {
+            flex: 1;
+            text-align: center;
+            min-width: 80px;
+        }
+
+        .subnav .btn.active {
+            background: var(--surface-2);
+            color: var(--text);
+            border-color: var(--gold);
+        }
+
+        .acc {
+            margin-bottom: 8px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .acc-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 12px 15px;
+            background: var(--surface);
+            cursor: pointer;
+        }
+
+        .acc-head h3 {
+            margin: 0;
+            font-family: 'Inter';
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .acc-head .meta {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .acc-body {
+            display: none;
+            padding: 6px 10px 10px;
+        }
+
+        .acc.open .acc-body {
+            display: block;
+        }
+
+        .acc.open .acc-head {
+            background: var(--surface-2);
+        }
+
+        .ms {
+            display: flex;
+            gap: 11px;
+            padding: 10px 6px;
+            border-bottom: 1px solid var(--border);
+            align-items: flex-start;
+        }
+
+        .ms:last-child {
+            border-bottom: none;
+        }
+
+        .ms .pill {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            padding: 3px 8px;
+            border-radius: 20px;
+            cursor: pointer;
+            white-space: nowrap;
+            flex-shrink: 0;
+            min-width: 84px;
+            text-align: center;
+            border: 1px solid var(--border);
+        }
+
+        .ms .pill.s0 {
+            color: var(--text-muted);
+            background: var(--surface-2);
+        }
+
+        .ms .pill.s1 {
+            color: var(--bg);
+            background: var(--gold);
+        }
+
+        .ms .pill.s2 {
+            color: var(--bg);
+            background: var(--sage);
+        }
+
+        .ms .txt {
+            flex: 1;
+            font-size: 14px;
+        }
+
+        .ms .txt .cat {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .ms .txt .mean {
+            display: block;
+            font-size: 12.5px;
+            color: var(--text-muted);
+            margin-top: 3px;
+            line-height: 1.4;
+        }
+
+        .lvl {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            padding: 3px 8px;
+            border-radius: 20px;
+            cursor: pointer;
+            white-space: nowrap;
+            flex-shrink: 0;
+            min-width: 92px;
+            text-align: center;
+            border: 1px solid var(--border);
+        }
+
+        .lvl.l0 {
+            color: var(--text-muted);
+            background: var(--surface-2);
+        }
+
+        .lvl.l1 {
+            color: var(--bg);
+            background: var(--rose);
+        }
+
+        .lvl.l2 {
+            color: var(--bg);
+            background: var(--gold);
+        }
+
+        .lvl.l3 {
+            color: var(--bg);
+            background: var(--sage);
+        }
+
+        .lvl.l4 {
+            color: var(--bg);
+            background: var(--teal);
+        }
+
+        .prio {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 9px;
+            padding: 1px 5px;
+            border-radius: 3px;
+            margin-left: 6px;
+            color: var(--bg);
+        }
+
+        .prio.Critical {
+            background: var(--rose);
+        }
+
+        .prio.High {
+            background: var(--gold);
+        }
+
+        .prio.Medium {
+            background: var(--surface-2);
+            color: var(--text-muted);
+        }
+
+        .hours-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+        }
+
+        .hcard {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 14px;
+            text-align: center;
+        }
+
+        .hcard .k {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        .stepper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 8px;
+        }
+
+        .stepper button {
+            width: 30px;
+            height: 30px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: var(--surface-2);
+            color: var(--text);
+            font-size: 18px;
+            cursor: pointer;
+        }
+
+        .stepper .val {
+            font-family: 'Fraunces', serif;
+            font-size: 26px;
+            min-width: 42px;
+        }
+
+        .hcard .tgt {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            color: var(--text-muted);
+            margin-top: 6px;
+        }
+
+        /* companies */
+        .co {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            padding: 11px 6px;
+            border-bottom: 1px solid var(--border);
+            flex-wrap: wrap;
+        }
+
+        .co:last-child {
+            border-bottom: none;
+        }
+
+        .co .cname {
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .co .cmeta {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .co .door {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            padding: 2px 7px;
+            border-radius: 4px;
+            color: var(--bg);
+        }
+
+        .co .door.A {
+            background: var(--sage);
+        }
+
+        .co .door.B {
+            background: var(--peri);
+        }
+
+        .co .band {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 12px;
+            color: var(--gold);
+            margin-left: auto;
+        }
+
+        .co .pill2 {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            padding: 3px 8px;
+            border-radius: 20px;
+            cursor: pointer;
+            border: 1px solid var(--border);
+            background: var(--surface-2);
+            color: var(--text-muted);
+        }
+
+        .co .pill2.warm {
+            background: var(--gold);
+            color: var(--bg);
+        }
+
+        .co .pill2.ref {
+            background: var(--sage);
+            color: var(--bg);
+        }
+
+        .co .pill2.app {
+            background: var(--sky);
+            color: var(--bg);
+        }
+
+        .co .pill2.off {
+            background: var(--teal);
+            color: var(--bg);
+        }
+
+        /* calendar */
+        .cal-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .cal-head .m {
+            font-family: 'Fraunces', serif;
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .cal-legend {
+            display: flex;
+            gap: 14px;
+            margin-bottom: 8px;
+            font-size: 12px;
+            color: var(--text-muted);
+            flex-wrap: wrap;
+        }
+
+        .cal-legend .lg {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+        }
+
+        .cal-legend .lg .sw {
+            width: 12px;
+            height: 12px;
+            border-radius: 3px;
+        }
+
+        .cal-legend .lg.off {
+            opacity: 0.4;
+            text-decoration: line-through;
+        }
+
+        .cal-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 4px;
+        }
+
+        .cal-dow {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            color: var(--text-muted);
+            text-align: center;
+            padding: 2px 0;
+        }
+
+        .cal-cell {
+            min-height: 62px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 4px 5px;
+            cursor: pointer;
+            overflow: hidden;
+        }
+
+        .cal-cell.blank {
+            background: transparent;
+            border: none;
+            cursor: default;
+        }
+
+        .cal-cell.today {
+            border-color: var(--gold);
+        }
+
+        .cal-cell.sel {
+            border-color: var(--text);
+        }
+
+        .cal-cell .dnum {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .cal-cell.today .dnum {
+            color: var(--gold);
+            font-weight: 600;
+        }
+
+        .cal-ev {
+            font-size: 10px;
+            border-radius: 3px;
+            padding: 1px 4px;
+            margin-top: 2px;
+            color: var(--bg);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .cal-ev.personal {
+            background: var(--gold);
+        }
+
+        .cal-ev.aganitha {
+            background: var(--sky);
+        }
+
+        .cal-more {
+            font-size: 9px;
+            color: var(--text-muted);
+            margin-top: 1px;
+        }
+
+        .day-events {
+            margin-top: 14px;
+        }
+
+        .day-ev-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 4px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .day-ev-row .swatch {
+            width: 10px;
+            height: 10px;
+            border-radius: 3px;
+            flex-shrink: 0;
+        }
+
+        .day-ev-row .swatch.personal {
+            background: var(--gold);
+        }
+
+        .day-ev-row .swatch.aganitha {
+            background: var(--sky);
+        }
+
+        .day-ev-row .et {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 12px;
+            color: var(--gold);
+            min-width: 60px;
+        }
+
+        .sync-note {
+            font-size: 12px;
+            color: var(--text-muted);
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 10px 12px;
+            margin-bottom: 12px;
+            line-height: 1.5;
+        }
+
+        /* north star goal tracker */
+        .northstar {
+            background: linear-gradient(135deg, var(--surface), var(--surface-2));
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 16px 18px;
+            margin-bottom: 8px;
+        }
+
+        .ns-head {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11px;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--gold);
+            margin-bottom: 12px;
+        }
+
+        .ns-goal {
+            padding: 12px 0;
+            border-top: 1px solid var(--border);
+        }
+
+        .ns-goal.first {
+            border-top: none;
+            padding-top: 0;
+        }
+
+        .ns-goal .gt {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .ns-goal .gname {
+            font-family: 'Fraunces', serif;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .ns-goal .gtarget {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 12px;
+            color: var(--gold);
+        }
+
+        .ns-goal .gwhere {
+            font-size: 12.5px;
+            color: var(--text-muted);
+            margin-top: 8px;
+            line-height: 1.5;
+        }
+
+        .ns-goal .gstatus {
+            font-weight: 600;
+        }
+
+        .ns-goal .gstatus.ahead {
+            color: var(--sage);
+        }
+
+        .ns-goal .gstatus.behind {
+            color: var(--rose);
+        }
+
+        .ns-goal .gstatus.ontrack {
+            color: var(--gold);
+        }
+
+        .ns-bar {
+            height: 9px;
+            border-radius: 5px;
+            background: var(--bg);
+            overflow: visible;
+            margin-top: 9px;
+            position: relative;
+        }
+
+        .ns-bar .fill {
+            height: 100%;
+            border-radius: 5px;
+            background: linear-gradient(90deg, var(--gold), var(--peri));
+        }
+
+        .ns-bar .timemark {
+            position: absolute;
+            top: -3px;
+            width: 2px;
+            height: 15px;
+            background: var(--text);
+            opacity: 0.65;
+        }
+
+        .cd {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11px;
+            color: var(--sky);
+            white-space: nowrap;
+        }
+
+        .cd.soon {
+            color: var(--rose);
+        }
+
+        .cd.live {
+            color: var(--gold);
+            font-weight: 600;
+        }
+
+        footer {
+            margin-top: 44px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .reset-link {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11px;
+            color: var(--text-muted);
+            opacity: 0.55;
+            background: none;
+            border: none;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+
+        .reset-link:hover {
+            opacity: 0.95;
+        }
+
+        .loading {
+            color: var(--text-muted);
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 13px;
+            padding: 20px 0;
+        }
+
+        .empty {
+            color: var(--text-muted);
+            font-size: 14px;
+            padding: 20px 4px;
+        }
+
+        @media (max-width:480px) {
+            h1 {
+                font-size: 30px;
+            }
+
+            .block .time {
+                min-width: 84px;
+                font-size: 11px;
+            }
+
+            .stat-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .hours-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .cal-cell {
+                min-height: 52px;
+            }
+
+            .co .band {
+                margin-left: 0;
+                width: 100%;
+            }
+        }
+
+        @media (prefers-reduced-motion:reduce) {
+            * {
+                transition: none !important;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="wrap">
+        <header>
+            <p class="eyebrow">Hyderabad &middot; Aganitha chapter</p>
+            <h1>The Ledger</h1>
+            <p class="sub">The day, the calendar, the 100, the 500, and the two-year climb.</p>
+            <div class="daybar-block">
+                <div class="daybar">
+                    <div class="now-marker" id="nowMarker"></div>
+                </div>
+                <div class="daybar-ticks"><span>6 AM</span><span>10</span><span>2 PM</span><span>6</span><span>10
+                        PM</span><span>12</span></div>
+            </div>
+            <span class="daytype-badge" id="dayTypeBadge">&mdash;</span>
+        </header>
+
+        <div class="tabs">
+            <button class="tab active" data-tab="today">Today</button>
+            <button class="tab" data-tab="dsa">DSA</button>
+            <button class="tab" data-tab="challenges">Challenges</button>
+            <button class="tab" data-tab="cv">CV Mastery</button>
+            <button class="tab" data-tab="week">Week</button>
+        </div>
+
+        <!-- TODAY -->
+        <div class="panel active" id="panel-today">
+            <div class="loading" id="todayLoading">Loading&hellip;</div>
+            <div id="todayWrap" style="display:none;">
+                <div id="northStar"></div>
+                <div class="row-between">
+                    <div class="seg" id="dayToggle"><button data-day="today" class="active">Today</button><button
+                            data-day="tomorrow">Tomorrow</button></div>
+                    <button class="btn ghost sm" id="editSchedBtn">Edit plan</button>
+                </div>
+
+                <div class="section-label" id="focusLabel">Tonight&rsquo;s block is for</div>
+                <div class="chips" id="focusChips"></div>
+
+                <div class="section-label">Schedule</div>
+                <div class="block-list" id="blockList"></div>
+                <div id="schedEditExtra"></div>
+                <div id="planEvents"></div>
+
+                <div id="habitsSection">
+                    <div class="section-label">Daily habits</div>
+                    <div class="habit-row" id="habitRow"></div>
+                </div>
+
+                <div class="section-label">Plan / notes</div>
+                <textarea class="notes-area" id="dayNotes"
+                    placeholder="What matters, what to prep, anything on your mind for the day&hellip;"></textarea>
+
+                <div class="section-label">Calendar</div>
+                <div class="sync-note">A manual planner for the two lives &mdash; <b>Personal</b>
+                    (viveshkrsingh19@gmail.com) and <b>Aganitha</b> (vivesh@aganitha.ai). Add what matters here. It does
+                    not sync live with Google (see the note I sent).</div>
+                <div class="cal-legend" id="calLegend"></div>
+                <div class="cal-head">
+                    <button class="btn ghost sm" id="calPrev">&larr;</button>
+                    <div class="m" id="calMonthLabel">&mdash;</div>
+                    <button class="btn ghost sm" id="calNext">&rarr;</button>
+                </div>
+                <div class="cal-grid" id="calGrid"></div>
+                <div class="day-events" id="dayEvents"></div>
+            </div>
+        </div>
+
+        <!-- DSA -->
+        <div class="panel" id="panel-dsa">
+            <div class="loading" id="dsaLoading">Loading&hellip;</div>
+            <div id="dsaWrap" style="display:none;">
+                <div class="stat-grid" id="dsaStats" style="margin-bottom:6px;"></div>
+                <div class="subnav">
+                    <button class="btn active" data-dsa="problems">Problems</button>
+                    <button class="btn" data-dsa="revision">Revision</button>
+                    <button class="btn" data-dsa="contests">Contests</button>
+                </div>
+                <div id="dsa-problems" class="dsa-sub"></div>
+                <div id="dsa-revision" class="dsa-sub" style="display:none;"></div>
+                <div id="dsa-contests" class="dsa-sub" style="display:none;"></div>
+            </div>
+        </div>
+
+        <!-- CHALLENGES -->
+        <div class="panel" id="panel-challenges">
+            <div class="loading" id="chalLoading">Loading&hellip;</div>
+            <div id="chalWrap" style="display:none;">
+                <div class="progress-row">
+                    <div class="progress-track">
+                        <div class="progress-fill" id="progressFill" style="width:0%"></div>
+                    </div>
+                    <div class="progress-num" id="progressNum">0 / 100</div>
+                </div>
+                <div class="chips" id="catFilter"></div>
+                <div style="text-align:right; margin:6px 0 12px;"><button class="btn ghost sm" id="addChalBtn">+ Add
+                        your own</button></div>
+                <div id="addChalForm"></div>
+                <div class="chal-list" id="chalList"></div>
+            </div>
+        </div>
+
+        <!-- CV -->
+        <div class="panel" id="panel-cv">
+            <div class="loading" id="cvLoading">Loading&hellip;</div>
+            <div id="cvWrap" style="display:none;">
+                <div class="subnav">
+                    <button class="btn active" data-cv="overview">Overview</button>
+                    <button class="btn" data-cv="roadmap">Roadmap</button>
+                    <button class="btn" data-cv="skills">Skills</button>
+                    <button class="btn" data-cv="companies">Companies</button>
+                    <button class="btn" data-cv="hours">Hours</button>
+                </div>
+                <div id="cv-overview" class="cv-sub"></div>
+                <div id="cv-roadmap" class="cv-sub" style="display:none;"></div>
+                <div id="cv-skills" class="cv-sub" style="display:none;"></div>
+                <div id="cv-companies" class="cv-sub" style="display:none;"></div>
+                <div id="cv-hours" class="cv-sub" style="display:none;"></div>
+            </div>
+        </div>
+
+        <!-- WEEK -->
+        <div class="panel" id="panel-week">
+            <div class="loading" id="weekLoading">Loading&hellip;</div>
+            <div id="weekWrap" style="display:none;">
+                <div class="section-label">Schedule completion &middot; last 7 days</div>
+                <div class="strip" id="weekStrip"></div>
+                <div class="section-label">Streaks</div>
+                <div class="stat-grid" id="streakGrid"></div>
+                <div class="section-label">Evening focus &middot; last 7 days</div>
+                <div class="fdots" id="focusHistory"></div>
+                <p class="chal-blurb" id="focusLegend" style="margin-top:10px;"></p>
+            </div>
+        </div>
+
+        <footer>
+            <button class="reset-link" id="resetSchedBtn">Reset schedule to default</button>
+            <button class="reset-link" id="resetBtn">Reset all saved data</button>
+        </footer>
+    </div>
+
+    <script>
+        /* ---------- helpers ---------- */
+        const pad = n => String(n).padStart(2, '0');
+        const dateStr = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+        const todayStr = () => dateStr(new Date());
+        function addDays(d, n) { const x = new Date(d); x.setDate(x.getDate() + n); return x; }
+        function mondayOf(d) { const x = new Date(d); const day = (x.getDay() + 6) % 7; x.setDate(x.getDate() - day); return dateStr(x); }
+        function getDayType(d) { const day = (d || new Date()).getDay(); if (day === 5) return 'friday'; if (day === 0 || day === 6) return 'weekend'; return 'weekday'; }
+        function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+        const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+        async function sGet(k) { try { const r = await window.storage.get(k); return r ? r.value : null; } catch (e) { return null; } }
+        async function sSet(k, v) { try { await window.storage.set(k, v); } catch (e) { console.error('save', k, e); } }
+        async function sDel(k) { try { await window.storage.delete(k); } catch (e) { } }
+
+        /* ---------- schedules ---------- */
+        const DEFAULT_SCHED = {
+            weekday: [
+                { id: 'wake', time: '7:00 AM', label: 'Wake up' },
+                { id: 'move', time: '7:00-7:30', label: 'Morning movement (30 min)' },
+                { id: 'ready', time: '7:30-8:30', label: 'Shower, breakfast, get ready' },
+                { id: 'ammind', time: '8:30-9:15', label: 'Morning focus (fresh-brain reading / theory)' },
+                { id: 'commin', time: '9:15-9:45', label: 'Commute in' },
+                { id: 'office', time: '10 AM-6 PM', label: 'Office \u2014 Aganitha', note: 'Post-lunch (2-3pm) slump: park lighter tasks here.' },
+                { id: 'commout', time: '6:00-6:30 PM', label: 'Commute home' },
+                { id: 'dinner', time: '6:30-7:30 PM', label: 'Dinner + decompress' },
+                { id: 'block', time: '7:30-10:30 PM', label: 'Focused work block (3 hrs)', note: 'Office push if you have high-impact work, else CV + interview prep.' },
+                { id: 'winddown', time: '10:30-11:00', label: 'Wind down, screens off' },
+                { id: 'sleep', time: '11:00 PM', label: 'Lights out \u2014 8 hrs before 7 AM' },
+            ],
+            friday: [
+                { id: 'wake', time: '7:00 AM', label: 'Wake up' },
+                { id: 'move', time: '7:00-7:30', label: 'Morning movement (30 min)' },
+                { id: 'ready', time: '7:30-8:30', label: 'Shower, breakfast, get ready' },
+                { id: 'ammind', time: '8:30-9:15', label: 'Morning focus (light)' },
+                { id: 'commin', time: '9:15-9:45', label: 'Commute in' },
+                { id: 'office', time: '10 AM-6 PM', label: 'Office \u2014 Aganitha' },
+                { id: 'commout', time: '6:00-6:30 PM', label: 'Commute home' },
+                { id: 'cook', time: '6:30-8:00 PM', label: 'Cook something good' },
+                { id: 'valorant', time: '8:00-11:00 PM', label: 'Valorant / unwind' },
+                { id: 'winddown', time: '11:00-11:30', label: 'Wind down' },
+                { id: 'sleep', time: '11:30 PM', label: 'Lights out' },
+            ],
+            weekend: [
+                { id: 'wake', time: '8:00 AM', label: 'Wake up' },
+                { id: 'move', time: '8:00-8:30', label: 'Morning movement (30 min)' },
+                { id: 'chores', time: 'Morning', label: 'Laundry + chores' },
+                { id: 'deep', time: 'Late morning', label: 'Deep work block (2-3 hrs) \u2014 CV mastery / project' },
+                { id: 'explore', time: 'Afternoon', label: 'Explore the city / challenge time' },
+                { id: 'free', time: 'Evening', label: 'Free time / rest / people' },
+                { id: 'winddown', time: '11:00-11:30', label: 'Wind down, screens off' },
+                { id: 'sleep', time: '11:30 PM', label: 'Lights out' },
+            ],
+        };
+        const FOCUS_OPTS = [{ id: 'office', label: 'Office push', cls: 'f-office' }, { id: 'cv', label: 'CV mastery', cls: 'f-cv' }, { id: 'interview', label: 'Interview prep', cls: 'f-interview' }, { id: 'mixed', label: 'Mixed', cls: 'f-mixed' }, { id: 'rest', label: 'Rest', cls: 'f-rest' }];
+        const FOCUS_COLOR = { office: 'var(--gold)', cv: 'var(--peri)', interview: 'var(--sky)', mixed: 'var(--orchid)', rest: 'var(--teal)' };
+        const HABITS = [{ id: 'exercise', label: 'Moved my body' }, { id: 'junkFree', label: 'No junk food' }, { id: 'sleepOnTime', label: 'Slept on time' }];
+
+        /* ---------- challenges (100) ---------- */
+        const CHALLENGES = [
+            { c: 'Explore', t: 'Explore a new neighbourhood on foot, no map', b: 'Pick a corner of Hyderabad you have never seen. Walk it. Eat whatever smells good.', sunday: true },
+            { c: 'Explore', t: 'Charminar and the Old City lanes', b: 'On foot, unhurried. Get lost in the bangle lanes around it.' },
+            { c: 'Explore', t: 'Sunset at Golconda Fort', b: 'Climb to the top and watch the light drop over the city.' },
+            { c: 'Explore', t: 'Salar Jung Museum, phone in pocket', b: 'A few hours, no scrolling, just look.' },
+            { c: 'Explore', t: 'Chowmahalla Palace', b: 'The Nizams lived big. Go see how big.' },
+            { c: 'Explore', t: 'Laad Bazaar + Char Kaman wander', b: 'No plan, no purchases needed. Just wander and watch.' },
+            { c: 'Explore', t: 'Hussain Sagar + Necklace Road walk', b: 'Evening stroll along the water with the Buddha statue lit up.' },
+            { c: 'Explore', t: 'Durgam Cheruvu at golden hour', b: 'The Secret Lake and its cable bridge, best just before dusk.' },
+            { c: 'Explore', t: 'KBR Park morning loop', b: 'A green lung in the middle of the city. Do the full loop.' },
+            { c: 'Explore', t: 'Birla Mandir at dusk', b: 'White marble on a hill, city lights coming on below.' },
+            { c: 'Explore', t: 'Shilparamam crafts village', b: 'Wander the artisan stalls; buy one thing made by hand.' },
+            { c: 'Explore', t: 'Ramoji Film City day out', b: 'The full tourist day. Go all in, no irony.' },
+            { c: 'Explore', t: 'Five Irani chai + Osmania biscuit spots', b: 'Rank them. Defend your winner to a local.' },
+            { c: 'Explore', t: 'Biryani crawl: three legendary spots', b: 'One weekend, three plates, one verdict.' },
+            { c: 'Explore', t: 'Moazzam Jahi Market food walk', b: 'Old-city market, fresh produce, and the famous ice cream.' },
+            { c: 'Explore', t: 'Bhongir Fort climb', b: 'A single giant rock with a fort on top. Day trip, early start.' },
+            { c: 'Explore', t: 'Warangal day trip', b: 'Thousand Pillar Temple and the fort ruins. History you can touch.' },
+            { c: 'Explore', t: 'Nagarjuna Sagar + Ethipothala Falls', b: 'Overnight trip to one of the biggest dams in the country.' },
+            { c: 'Explore', t: 'Ananthagiri Hills forest trek', b: 'Near Vikarabad. Trees, quiet, no signal. That is the point.' },
+            { c: 'Explore', t: 'Qutb Shahi Tombs at a quiet hour', b: 'Go when it is empty and just wander the domes.' },
+            { c: 'Explore', t: 'Find the Paigah Tombs', b: 'A hidden-gem of carved stone most people miss. Go find it.' },
+            { c: 'Explore', t: 'Sunrise at Tank Bund', b: 'Get there before the city does.' },
+            { c: 'Explore', t: 'See a play or a live gig', b: 'Whatever is on at a local venue this month. Just go.' },
+            { c: 'Explore', t: 'Visit a quirky museum', b: 'Sudha Cars, or anything odd and specific. Delight in it.' },
+            { c: 'Explore', t: 'Getaway to a place you had not heard of', b: 'Point at the map an hour out. Go there for a day.' },
+            { c: 'Explore', t: 'Street-photo walk: 30 frames, one lane', b: 'One street, thirty photos. Slow down and actually see it.' },
+            { c: 'Physical', t: '10,000 steps a day for 14 days', b: 'No hero effort. Just show up, every day, two weeks.' },
+            { c: 'Physical', t: 'Walk 30 km in a day', b: 'The big one. Plan the route, tell someone, do it.' },
+            { c: 'Physical', t: 'Cycle 50 km in a day', b: 'Rent or borrow a bike. Start early. Take it seriously.' },
+            { c: 'Physical', t: 'Sunrise trek near Hyderabad', b: 'Leave before dawn. Watch the city wake up from above it.' },
+            { c: 'Physical', t: 'Try a sport you have never played', b: 'Zero history. Pure beginner. Enjoy being bad at it.' },
+            { c: 'Physical', t: '30-day morning-movement streak', b: 'Thirty mornings, thirty sessions. The base habit.' },
+            { c: 'Physical', t: 'Ten clean push-ups in a row', b: 'Build from wherever you are. Test at the end.' },
+            { c: 'Physical', t: 'Hold a two-minute plank', b: 'Add ten seconds a day until you get there.' },
+            { c: 'Physical', t: 'Run a 5K without stopping', b: 'Couch to continuous. First one is a milestone.' },
+            { c: 'Physical', t: 'Swim laps for 20 minutes straight', b: 'Find a pool. Keep moving for twenty minutes.' },
+            { c: 'Physical', t: 'A bouldering / climbing session', b: 'Chalk up, fall off, try again. Great for the head too.' },
+            { c: 'Physical', t: 'Badminton match with a colleague', b: 'Fun, fast, and a low-key way to bond with the team.' },
+            { c: 'Physical', t: '30-day mobility streak', b: 'Five minutes of stretching daily. Touch your toes by day 30.' },
+            { c: 'Physical', t: 'Cold shower every morning, two weeks', b: 'Uncomfortable on purpose. Notice what it does to your day.' },
+            { c: 'Physical', t: 'Forty squats a day for 30 days', b: 'Legs of a person who climbs forts for fun.' },
+            { c: 'Physical', t: 'Cycle the full loop around a lake', b: 'Durgam Cheruvu or Hussain Sagar. Build up your distance.' },
+            { c: 'Physical', t: 'A full day outdoors, sunrise to sunset', b: 'No four walls from first light to last. See how it feels.' },
+            { c: 'Physical', t: 'Pickup cricket or football with strangers', b: 'Join a game in a park. Introduce yourself after.' },
+            { c: 'Physical', t: 'Take one dance class', b: 'However awkward. Move to music with other people.' },
+            { c: 'Physical', t: 'Cook + eat home food for 21 days', b: 'Three weeks, no outside food. Your body will notice.' },
+            { c: 'Discipline', t: 'Phone-free day', b: 'Airplane mode from wake to sleep. Emergencies only. Notice what fills the space.' },
+            { c: 'Discipline', t: '24-hour fast, water only', b: 'Sunrise to sunrise. A discipline challenge, not a diet. Stop early if you feel genuinely unwell.' },
+            { c: 'Discipline', t: 'Thirty days, zero junk food', b: 'The habit you said you want. Track it here, day by day.' },
+            { c: 'Discipline', t: 'A full day of silence', b: 'No unnecessary talking, no social media. Hear what gets loud inside instead.' },
+            { c: 'Discipline', t: 'No social media for seven days', b: 'Delete the apps for a week. Reinstall only what you missed.' },
+            { c: 'Discipline', t: 'Wake at 6:30 for 21 days', b: 'Same time every morning, weekends included. Reset the clock.' },
+            { c: 'Discipline', t: 'Screens off 60 min before bed, two weeks', b: 'The single biggest lever on your sleep. Prove it to yourself.' },
+            { c: 'Discipline', t: 'Clear all clutter, keep it 30 days', b: 'Desk, inbox, room to zero. Then hold the line for a month.' },
+            { c: 'Discipline', t: 'No spending on wants for two weeks', b: 'Needs only. Watch where the impulses come from.' },
+            { c: 'Discipline', t: 'Cook every meal yourself for a week', b: 'No delivery, no eating out. Seven days, all you.' },
+            { c: 'Discipline', t: 'No caffeine after noon for two weeks', b: 'See what it does to how you fall asleep.' },
+            { c: 'Discipline', t: 'No phone after 10 PM for 21 days', b: 'A hard digital sunset. Read or sleep instead.' },
+            { c: 'Discipline', t: 'Journal every night for 30 days', b: 'Three lines minimum. Never skip. Watch the month add up.' },
+            { c: 'Discipline', t: 'Read 20 pages a day for 30 days', b: 'Six hundred pages in a month, quietly.' },
+            { c: 'Discipline', t: 'One deep-work hour before any chat app', b: 'Protect the first hour of every workday for two weeks.' },
+            { c: 'Discipline', t: 'No Valorant on weeknights for a month', b: 'Keep Friday. Reclaim the other four evenings.' },
+            { c: 'Skill', t: 'Ship a weekend side project, post it', b: 'Idea to something working in two days. Put it out publicly.' },
+            { c: 'Skill', t: 'Write and publish a blog post', b: 'Something you actually learned at Aganitha. Teach it to a stranger.' },
+            { c: 'Skill', t: 'Rebuild MyoFInDer and demo it to the team', b: 'Your high-impact office push. Make it clean, make it fast, show it off.' },
+            { c: 'Skill', t: 'Give a 5-minute talk on a paper', b: 'To your team. Explaining out loud is where mastery shows.' },
+            { c: 'Skill', t: 'Merge your first open-source PR', b: 'cellpose, napari, scikit-image or MONAI. Start with a small fix.' },
+            { c: 'Skill', t: 'Reproduce a paper result end-to-end', b: 'Pick one, rebuild it, match the numbers. Then break it.' },
+            { c: 'Skill', t: 'Solve 50 LeetCode problems in a month', b: 'Door B insurance. Patterns, not one-offs.' },
+            { c: 'Skill', t: 'Learn 10 Telugu phrases and use them', b: 'With a shopkeeper, an auto driver, a colleague. Out loud.' },
+            { c: 'Skill', t: 'Build a U-Net from scratch, no libraries', b: 'A hundred lines of PyTorch. The first real CV milestone.' },
+            { c: 'Skill', t: 'Answer 5 questions on image.sc', b: 'The most underused networking channel in your field.' },
+            { c: 'Skill', t: 'Record yourself explaining a concept', b: 'Watch it back. It is humbling and it works.' },
+            { c: 'Skill', t: 'Learn napari deeply in a weekend', b: 'The field standard for looking at 3D data. Own it.' },
+            { c: 'Skill', t: 'Teach someone something, one-on-one', b: 'A junior, a friend, anyone. Teaching cements it.' },
+            { c: 'Skill', t: 'Redo your portfolio site in a weekend', b: 'Rebuild it around imaging, not LLMs. Ship it.' },
+            { c: 'Skill', t: 'Ask a senior to review your code', b: 'Invite the hard feedback early. It compounds.' },
+            { c: 'Skill', t: 'Read one CV textbook chapter a week, 8 weeks', b: 'Szeliski or a real course. Slow, steady, foundational.' },
+            { c: 'Social', t: 'Lunch with someone new every week, one month', b: 'Different person each week. Learn what they actually do.' },
+            { c: 'Social', t: 'Reconnect with an old friend', b: 'Someone you have not spoken to in a year. Reach out first.' },
+            { c: 'Social', t: 'Host a dinner you cooked for 3+ people', b: 'Your food, your table. Make it a night people remember.' },
+            { c: 'Social', t: 'Introduce yourself to all three co-founders', b: 'In an 82-person company, this is doable and it matters.' },
+            { c: 'Social', t: 'Say yes to every invite for two weeks', b: 'Every one. See where the city takes you.' },
+            { c: 'Social', t: 'Call family every Sunday for two months', b: 'A standing call. No agenda. Just show up.' },
+            { c: 'Social', t: 'Make one new friend outside work', b: 'Someone with zero connection to Aganitha or code.' },
+            { c: 'Social', t: 'Attend a meetup, talk to three strangers', b: 'PyData Hyderabad or any AI group. Lead with a question.' },
+            { c: 'Social', t: 'Thank someone sincerely, daily for a week', b: 'Specific, not generic. Watch what it does to your week.' },
+            { c: 'Social', t: 'Go to an event alone and enjoy it', b: 'No wingman. Prove to yourself you can.' },
+            { c: 'Create', t: 'Cook a cuisine you have never tried', b: 'From scratch, no shortcuts. Something you would never order.' },
+            { c: 'Create', t: 'Master one signature dish', b: 'Cook it ten times. Make it the thing people ask you for.' },
+            { c: 'Create', t: 'Make something with your hands, no screen', b: 'Wood, clay, paint, anything physical. Keep the result.' },
+            { c: 'Create', t: 'Write 500 words, not for work', b: 'A story, a rant, a memory. Nobody has to read it.' },
+            { c: 'Create', t: 'Learn three songs on an instrument', b: 'Or to sing them. Perform one for a single person.' },
+            { c: 'Create', t: 'Document a month of your life in photos', b: 'One frame a day. Look at the set at the end.' },
+            { c: 'Reset', t: 'Ten minutes of stillness daily, 21 days', b: 'Sit, breathe, do nothing else. Three weeks straight.' },
+            { c: 'Reset', t: 'One fully tech-free weekend', b: 'Off, not just muted. Feel the first hour, then the freedom.' },
+            { c: 'Reset', t: 'Watch a sunrise and a sunset the same day', b: 'Bookend one day with both. Notice the whole thing in between.' },
+            { c: 'Reset', t: 'An afternoon in nature, no agenda', b: 'No steps to hit, no photos to get. Just be outside.' },
+            { c: 'Reset', t: 'Write a letter to yourself, open in 6 months', b: 'Where you are, what you want. Seal it. Read it in February.' },
+            { c: 'Reset', t: 'One line a day for a month: what went well', b: 'The smallest gratitude habit. Thirty lines, thirty good things.' },
+        ];
+        CHALLENGES.forEach((c, i) => { c.id = 'c' + (i + 1); });
+
+        /* ---------- DSA (curated must-dos + counters toward 500) ---------- */
+        const DSA_TOPICS = [
+            ['Arrays & Hashing', [['Two Sum', 'E'], ['Contains Duplicate', 'E'], ['Valid Anagram', 'E'], ['Majority Element', 'E'], ['Group Anagrams', 'M'], ['Top K Frequent Elements', 'M'], ['Product of Array Except Self', 'M'], ['Longest Consecutive Sequence', 'M'], ['Encode and Decode Strings', 'M'], ['Subarray Sum Equals K', 'M'], ['Sort Colors', 'M'], ['Set Matrix Zeroes', 'M']]],
+            ['Two Pointers', [['Valid Palindrome', 'E'], ['Remove Duplicates from Sorted Array', 'E'], ['Move Zeroes', 'E'], ['Two Sum II', 'M'], ['3Sum', 'M'], ['4Sum', 'M'], ['Container With Most Water', 'M'], ['Trapping Rain Water', 'H']]],
+            ['Sliding Window', [['Best Time to Buy and Sell Stock', 'E'], ['Longest Substring Without Repeating Characters', 'M'], ['Longest Repeating Character Replacement', 'M'], ['Permutation in String', 'M'], ['Fruit Into Baskets', 'M'], ['Minimum Window Substring', 'H'], ['Sliding Window Maximum', 'H']]],
+            ['Stack', [['Valid Parentheses', 'E'], ['Next Greater Element I', 'E'], ['Min Stack', 'M'], ['Evaluate Reverse Polish Notation', 'M'], ['Generate Parentheses', 'M'], ['Daily Temperatures', 'M'], ['Car Fleet', 'M'], ['Asteroid Collision', 'M'], ['Largest Rectangle in Histogram', 'H']]],
+            ['Binary Search', [['Binary Search', 'E'], ['Search a 2D Matrix', 'M'], ['Koko Eating Bananas', 'M'], ['Find Minimum in Rotated Sorted Array', 'M'], ['Search in Rotated Sorted Array', 'M'], ['Time Based Key-Value Store', 'M'], ['Split Array Largest Sum', 'H'], ['Median of Two Sorted Arrays', 'H']]],
+            ['Linked List', [['Reverse Linked List', 'E'], ['Merge Two Sorted Lists', 'E'], ['Linked List Cycle', 'E'], ['Reorder List', 'M'], ['Remove Nth Node From End of List', 'M'], ['Copy List with Random Pointer', 'M'], ['Add Two Numbers', 'M'], ['LRU Cache', 'M'], ['Merge k Sorted Lists', 'H'], ['Reverse Nodes in k-Group', 'H']]],
+            ['Trees', [['Invert Binary Tree', 'E'], ['Maximum Depth of Binary Tree', 'E'], ['Diameter of Binary Tree', 'E'], ['Balanced Binary Tree', 'E'], ['Same Tree', 'E'], ['Subtree of Another Tree', 'E'], ['Lowest Common Ancestor of a BST', 'M'], ['Binary Tree Level Order Traversal', 'M'], ['Binary Tree Right Side View', 'M'], ['Count Good Nodes in Binary Tree', 'M'], ['Validate Binary Search Tree', 'M'], ['Kth Smallest Element in a BST', 'M'], ['Construct Binary Tree from Preorder and Inorder', 'M'], ['Binary Tree Maximum Path Sum', 'H'], ['Serialize and Deserialize Binary Tree', 'H']]],
+            ['Tries', [['Implement Trie (Prefix Tree)', 'M'], ['Design Add and Search Words Data Structure', 'M'], ['Word Search II', 'H']]],
+            ['Heap / Priority Queue', [['Kth Largest Element in a Stream', 'E'], ['Last Stone Weight', 'E'], ['K Closest Points to Origin', 'M'], ['Kth Largest Element in an Array', 'M'], ['Task Scheduler', 'M'], ['Design Twitter', 'M'], ['Find Median from Data Stream', 'H']]],
+            ['Backtracking', [['Subsets', 'M'], ['Combination Sum', 'M'], ['Permutations', 'M'], ['Subsets II', 'M'], ['Combination Sum II', 'M'], ['Word Search', 'M'], ['Palindrome Partitioning', 'M'], ['Letter Combinations of a Phone Number', 'M'], ['N-Queens', 'H']]],
+            ['Graphs', [['Number of Islands', 'M'], ['Clone Graph', 'M'], ['Max Area of Island', 'M'], ['Pacific Atlantic Water Flow', 'M'], ['Surrounded Regions', 'M'], ['Rotting Oranges', 'M'], ['Course Schedule', 'M'], ['Course Schedule II', 'M'], ['Redundant Connection', 'M'], ['Number of Connected Components', 'M'], ['Graph Valid Tree', 'M'], ['Word Ladder', 'H']]],
+            ['Advanced Graphs', [['Network Delay Time', 'M'], ['Cheapest Flights Within K Stops', 'M'], ['Min Cost to Connect All Points', 'M'], ['Reconstruct Itinerary', 'H'], ['Swim in Rising Water', 'H'], ['Alien Dictionary', 'H']]],
+            ['1-D DP', [['Climbing Stairs', 'E'], ['Min Cost Climbing Stairs', 'E'], ['House Robber', 'M'], ['House Robber II', 'M'], ['Longest Palindromic Substring', 'M'], ['Palindromic Substrings', 'M'], ['Decode Ways', 'M'], ['Coin Change', 'M'], ['Maximum Product Subarray', 'M'], ['Word Break', 'M'], ['Longest Increasing Subsequence', 'M'], ['Partition Equal Subset Sum', 'M']]],
+            ['2-D DP', [['Unique Paths', 'M'], ['Longest Common Subsequence', 'M'], ['Best Time to Buy/Sell Stock with Cooldown', 'M'], ['Coin Change II', 'M'], ['Target Sum', 'M'], ['Interleaving String', 'M'], ['Edit Distance', 'M'], ['Distinct Subsequences', 'H'], ['Longest Increasing Path in a Matrix', 'H'], ['Regular Expression Matching', 'H']]],
+            ['Greedy', [['Maximum Subarray', 'M'], ['Jump Game', 'M'], ['Jump Game II', 'M'], ['Gas Station', 'M'], ['Hand of Straights', 'M'], ['Merge Triplets to Form Target Triplet', 'M'], ['Partition Labels', 'M'], ['Valid Parenthesis String', 'M']]],
+            ['Intervals', [['Meeting Rooms', 'E'], ['Insert Interval', 'M'], ['Merge Intervals', 'M'], ['Non-overlapping Intervals', 'M'], ['Meeting Rooms II', 'M'], ['Minimum Interval to Include Each Query', 'H']]],
+            ['Bit Manipulation', [['Single Number', 'E'], ['Number of 1 Bits', 'E'], ['Counting Bits', 'E'], ['Reverse Bits', 'E'], ['Missing Number', 'E'], ['Sum of Two Integers', 'M'], ['Reverse Integer', 'M']]],
+            ['Math & Geometry', [['Happy Number', 'E'], ['Plus One', 'E'], ['Rotate Image', 'M'], ['Spiral Matrix', 'M'], ['Pow(x, n)', 'M'], ['Multiply Strings', 'M'], ['Detect Squares', 'M']]],
+        ];
+        // build flat list with ids
+        let DSA = []; DSA_TOPICS.forEach((t, ti) => { t[1].forEach((p, pi) => { DSA.push({ id: 'd' + ti + '_' + pi, topic: t[0], name: p[0], diff: p[1] }); }); });
+        const DSA_TARGET = 500;
+        const REV_INTERVALS = [1, 3, 7, 21, 45];
+
+        /* ---------- CV roadmap (48) ---------- */
+        const QUARTERS = [
+            ['Q1', 'Aug-Oct 2026', 'Land and become useful'], ['Q2', 'Nov 2026-Jan 2027', 'Own a pipeline end-to-end'],
+            ['Q3', 'Feb-Apr 2027', 'Build public evidence'], ['Q4', 'May-Jul 2027', 'Depth + first external validation'],
+            ['Q5', 'Aug-Oct 2027', 'Senior-level ownership'], ['Q6', 'Nov 2027-Jan 2028', 'Become externally known'],
+            ['Q7', 'Feb-Apr 2028', 'Prepare the switch'], ['Q8', 'May-Jul 2028', 'Execute the switch'],
+        ];
+        const ROADMAP = [
+            ['Q1', 'Skill', 'Build a U-Net from scratch in PyTorch, train on a public nuclei dataset (MoNuSeg / BBBC)'],
+            ['Q1', 'Skill', 'Run nnU-Net on the same data, measure the gap, write up why pipeline beat architecture'],
+            ['Q1', 'Skill', 'Learn segmentation metrics properly: Dice, IoU, AJI, Panoptic Quality'],
+            ['Q1', 'Work', 'Ship 3 small work tasks on time with zero rework \u2014 reliability before ambition'],
+            ['Q1', 'Visibility', 'Publish 6 blog posts (one every two weeks) and lock in the habit'],
+            ['Q1', 'Network', 'Create an image.sc account; ask 2 good questions, answer 3'],
+            ['Q2', 'Work', 'Own one imaging pipeline end to end: raw data to a number a scientist uses'],
+            ['Q2', 'Skill', 'Master 3D data: z-stacks, OME-TIFF/Zarr, napari, SimpleITK'],
+            ['Q2', 'Visibility', 'First merged open-source PR (scikit-image / napari / cellpose / MONAI)'],
+            ['Q2', 'Career', 'Write your 6-month impact document and negotiate conversion CTC upward'],
+            ['Q2', 'Skill', 'Self-supervised + promptable segmentation: DINOv3, SAM 3, micro-SAM on real bio data'],
+            ['Q2', 'DSA', 'Reach LeetCode 1750 \u2014 arrays, hashing, binary search, trees solid'],
+            ['Q3', 'Visibility', 'Ship flagship repo #1: robustness benchmark on cell/organoid segmentation'],
+            ['Q3', 'Career', 'Get written approval to publish a paper/poster/preprint from your work'],
+            ['Q3', 'Network', 'Attend your first in-person event (PyData / ICVGIP / CVIP / bioimaging meetup)'],
+            ['Q3', 'Skill', 'Deployment: Docker, model serving, ONNX/TensorRT, monitoring a live model'],
+            ['Q3', 'Visibility', '20 blog posts cumulative; repin GitHub around vision, retire LLM-only pins'],
+            ['Q3', 'DSA', 'Reach LeetCode 1850 \u2014 graphs and DP comfortable'],
+            ['Q4', 'Visibility', 'Submit the paper / poster / preprint'],
+            ['Q4', 'Visibility', '3 merged open-source contributions cumulative'],
+            ['Q4', 'Work', 'Mentor or onboard a new intern \u2014 first leadership signal'],
+            ['Q4', 'Skill', 'Build one vision-language project: imaging + LLM. Your unique wedge'],
+            ['Q4', 'Network', '30 people in the network log, at least 8 rated Strong'],
+            ['Q4', 'DSA', 'Reach LeetCode 1900 \u2014 the practical GCC threshold'],
+            ['Q5', 'Work', 'Own a full project with a junior working under or mentored by you'],
+            ['Q5', 'Work', 'Take one ambiguous problem and scope it into a plan the team accepts'],
+            ['Q5', 'Visibility', 'Present at an internal all-hands or client-facing meeting'],
+            ['Q5', 'Visibility', 'Ship flagship repo #2 or a major feature in a bioimage library'],
+            ['Q5', 'Skill', 'MLOps at scale: experiment tracking, data versioning, reproducible training'],
+            ['Q5', 'Visibility', 'Paper accepted or preprint live and shared'],
+            ['Q6', 'Visibility', 'Give a public talk at a meetup or conference'],
+            ['Q6', 'Visibility', '40 blog posts cumulative; portfolio rebuilt around imaging case studies'],
+            ['Q6', 'Skill', 'Whole-slide imaging + MIL (CLAM, ABMIL, TransMIL) on a public dataset'],
+            ['Q6', 'Career', 'Annual review: negotiate to market band using external benchmarks'],
+            ['Q6', 'Network', '50 people in the log, at least 15 rated Strong or Advocate'],
+            ['Q6', 'Visibility', 'Second publication, major writeup, or open-source release'],
+            ['Q7', 'Career', 'Rewrite the resume around imaging outcomes, not tool lists'],
+            ['Q7', 'Career', '10 mock interviews: CV depth, ML system design, DSA \u2014 record each'],
+            ['Q7', 'Network', 'Reactivate every warm contact; ask 5 people directly for referrals'],
+            ['Q7', 'Career', 'Shortlist 25 target companies, each with a named human contact'],
+            ['Q7', 'DSA', 'LeetCode 1950+, comfortable attempting hards under time pressure'],
+            ['Q7', 'Visibility', 'Portfolio live with 3 written case studies of real work'],
+            ['Q8', 'Career', 'Apply to 25 target roles, via referral wherever possible'],
+            ['Q8', 'Career', 'Complete 10+ full interview processes \u2014 the first three are the worst'],
+            ['Q8', 'Career', 'Get at least 2 offers for real negotiating leverage'],
+            ['Q8', 'Career', 'Negotiate and secure an offer at your target band or above'],
+            ['Q8', 'Career', 'Serve notice cleanly, leave Aganitha on excellent terms'],
+            ['Q8', 'Career', 'Write your playbook: what actually worked, for next time'],
+        ];
+        ROADMAP.forEach((m, i) => { m.id = 'm' + i; });
+
+        /* ---------- CV skills (71) ---------- */
+        const SKILLS = [
+            ['1. Classical foundations', 'Image formation & optics', 'How a camera/microscope turns light into pixels \u2014 exposure, bit depth, noise.', 'High'],
+            ['1. Classical foundations', 'Convolution & filtering', 'Sliding a small matrix over an image to blur, sharpen or find edges. What a CNN automates.', 'High'],
+            ['1. Classical foundations', 'Thresholding (Otsu, adaptive)', 'Picking a brightness cutoff to split object from background. Still the first thing to try.', 'High'],
+            ['1. Classical foundations', 'Morphology (erode/dilate/open/close)', 'Shrinking and growing binary shapes to clean up masks.', 'High'],
+            ['1. Classical foundations', 'Watershed segmentation', 'Treating brightness as a landscape and flooding it to split touching objects.', 'High'],
+            ['1. Classical foundations', 'Edge detection (Sobel, Canny)', 'Finding where brightness changes sharply \u2014 object boundaries.', 'Medium'],
+            ['1. Classical foundations', 'Colour spaces & stain normalisation', 'RGB vs HSV vs LAB, and correcting slides stained differently day to day.', 'High'],
+            ['1. Classical foundations', 'Fourier / frequency domain', 'Viewing an image as a mix of wave patterns. Underlies deconvolution.', 'Medium'],
+            ['1. Classical foundations', 'Geometric transforms & interpolation', 'Rotating, scaling, resampling without destroying detail.', 'Medium'],
+            ['1. Classical foundations', 'Image registration', 'Aligning two images of the same thing taken differently.', 'High'],
+            ['2. Deep learning for vision', 'CNN architectures (ResNet, DenseNet)', 'The standard image networks. You used DenseNet121 \u2014 now know why it works.', 'High'],
+            ['2. Deep learning for vision', 'Vision Transformers (ViT)', 'Chopping an image into patches like words in a sentence. Basis of every foundation model.', 'High'],
+            ['2. Deep learning for vision', 'U-Net from scratch', 'Encoder squeezes, decoder expands, skip connections keep detail. The workhorse.', 'Critical'],
+            ['2. Deep learning for vision', 'nnU-Net', 'Auto-configures the whole pipeline. Beats fancier nets. Teaches pipeline > model.', 'Critical'],
+            ['2. Deep learning for vision', 'Segmentation losses (Dice, Focal, Tversky)', 'Different ways of scoring a wrong mask. Wrong choice = silent failure.', 'High'],
+            ['2. Deep learning for vision', 'Data augmentation (albumentations)', 'Random flips/rotations/blur so the model does not memorise.', 'High'],
+            ['2. Deep learning for vision', 'Transfer learning & fine-tuning', 'Adapt a pretrained model to your data with less data.', 'High'],
+            ['2. Deep learning for vision', 'Mixed precision & memory management', 'Training in 16-bit to fit bigger images. You know this from QLoRA.', 'Medium'],
+            ['2. Deep learning for vision', 'Multi-GPU / distributed training', 'Splitting one job across several GPUs.', 'Medium'],
+            ['3. Segmentation & detection', 'Semantic vs instance vs panoptic', 'Label pixels / give each object an ID / do both. Counting cells needs instance.', 'Critical'],
+            ['3. Segmentation & detection', 'Cellpose', 'Predicts arrows to each cell centre, so touching cells separate.', 'Critical'],
+            ['3. Segmentation & detection', 'StarDist', 'Each cell as a star-shaped polygon. Fast, great on round nuclei.', 'High'],
+            ['3. Segmentation & detection', 'CellViT', 'Transformer that segments and classifies cells in pathology slides.', 'High'],
+            ['3. Segmentation & detection', 'Mask R-CNN', 'Classic detect-then-segment. Still a common baseline.', 'Medium'],
+            ['3. Segmentation & detection', 'SAM / SAM 2 / SAM 3', 'Segment Anything. SAM 3 segments every instance of a text-described concept.', 'High'],
+            ['3. Segmentation & detection', 'micro-SAM & MedSAM', 'SAM adapted to microscopy and medical images.', 'High'],
+            ['3. Segmentation & detection', 'Dice & IoU', 'How much your mask overlaps the true one, 0 to 1.', 'Critical'],
+            ['3. Segmentation & detection', 'AJI', 'Overlap scored per object; punishes merging/splitting cells.', 'Critical'],
+            ['3. Segmentation & detection', 'Panoptic Quality (PQ)', 'Detection quality times segmentation quality. Fairest single number.', 'Critical'],
+            ['3. Segmentation & detection', 'AP at IoU thresholds', 'Precision averaged over strictness. The standard detection metric.', 'High'],
+            ['4. Bioimaging domain', 'z-stacks & 3D volumes', 'Many focal depths stacked into a 3D volume. Not a flat photo.', 'Critical'],
+            ['4. Bioimaging domain', 'OME-TIFF & OME-Zarr', 'Formats carrying channels, depth, timepoints, physical pixel size.', 'High'],
+            ['4. Bioimaging domain', 'napari', 'Python viewer for 3D/multichannel microscopy. The field standard.', 'Critical'],
+            ['4. Bioimaging domain', 'Fiji / ImageJ', 'What every biologist already uses. Speak it to talk to them.', 'High'],
+            ['4. Bioimaging domain', 'CellProfiler', 'Point-and-click cell-measuring pipelines. Often what you must beat.', 'High'],
+            ['4. Bioimaging domain', 'ilastik', 'Interactive ML for pixel classification with few labels.', 'Medium'],
+            ['4. Bioimaging domain', 'ITK / SimpleITK', '3D medical volume processing: resample, register, filter.', 'High'],
+            ['4. Bioimaging domain', 'Illumination correction', 'Removing uneven brightness the microscope adds.', 'High'],
+            ['4. Bioimaging domain', 'Deconvolution & denoising', 'Undoing optical blur and low-light noise.', 'High'],
+            ['4. Bioimaging domain', 'Whole-slide images & OpenSlide', 'Gigapixel scans read tile by tile without exploding memory.', 'High'],
+            ['4. Bioimaging domain', 'MIL (CLAM, ABMIL, TransMIL)', 'Training on a slide-level label with no pixel labels.', 'High'],
+            ['4. Bioimaging domain', 'Organoids, spheroids, 3D culture', 'Mini-tissues in a dish. Aganitha core subject \u2014 learn the vocabulary.', 'Critical'],
+            ['4. Bioimaging domain', 'High-content screening (HCS)', 'Imaging thousands of wells to test compounds. Plates, dose-response, IC50.', 'Critical'],
+            ['4. Bioimaging domain', 'Batch & plate effects', 'Systematic differences a model learns instead of biology.', 'Critical'],
+            ['4. Bioimaging domain', 'Annotation protocol design', 'Deciding what counts as a cell and getting humans to agree. Quiet high leverage.', 'Critical'],
+            ['4. Bioimaging domain', 'Cell Painting & phenotypic profiling', 'Staining many components, turning morphology into a numeric fingerprint.', 'High'],
+            ['5. Foundation models', 'Self-supervised learning', 'Training on unlabelled images by predicting hidden parts.', 'High'],
+            ['5. Foundation models', 'DINOv2 / DINOv3', 'General vision backbones. Newer Cellpose is built on DINOv3.', 'High'],
+            ['5. Foundation models', 'Pathology models (UNI, Virchow2, CONCH)', 'Big tissue-pretrained models reused as feature extractors.', 'High'],
+            ['5. Foundation models', 'PEFT for vision', 'LoRA/adapters on image models. Transfer it from your LLM work.', 'High'],
+            ['5. Foundation models', 'Vision-language models', 'Linking images to text. Your LLM background + imaging = your wedge.', 'Critical'],
+            ['5. Foundation models', 'Linear probing & few-shot eval', 'Testing frozen features without retraining everything.', 'High'],
+            ['6. Engineering & MLOps', 'PyTorch beyond the basics', 'Custom datasets, samplers, hooks, profiling. Your TCS work is ahead here.', 'High'],
+            ['6. Engineering & MLOps', 'Experiment tracking (W&B / MLflow)', 'Logging every run so you can answer what caused what.', 'High'],
+            ['6. Engineering & MLOps', 'Data versioning (DVC)', 'Version control for datasets and labels, not just code.', 'Medium'],
+            ['6. Engineering & MLOps', 'Docker for reproducible training', 'Package the environment so results reproduce elsewhere.', 'High'],
+            ['6. Engineering & MLOps', 'Model serving (FastAPI, Triton)', 'Turn a model into an API. You already have FastAPI.', 'High'],
+            ['6. Engineering & MLOps', 'ONNX & TensorRT', 'Convert and optimise models for fast, portable inference.', 'Medium'],
+            ['6. Engineering & MLOps', 'GPU profiling & throughput', 'Finding whether you are compute-, memory-, or data-bound.', 'Medium'],
+            ['7. Rigour & evaluation', 'Validation split design', 'Split by patient/slide/plate, never by image. The classic fatal bug.', 'Critical'],
+            ['7. Rigour & evaluation', 'Leakage detection', 'Spotting test info that crept into training and inflated the score.', 'Critical'],
+            ['7. Rigour & evaluation', 'Calibration & uncertainty', 'Whether confidence matches how often the model is right.', 'High'],
+            ['7. Rigour & evaluation', 'Domain shift & robustness testing', 'Degrading inputs on purpose to find where the model breaks.', 'Critical'],
+            ['7. Rigour & evaluation', 'Ablation methodology', 'Removing one component at a time to prove what caused the gain.', 'High'],
+            ['7. Rigour & evaluation', 'Statistical significance for ML', 'Knowing when a 1-point Dice gain is real and when it is noise.', 'High'],
+            ['8. DSA (Door B insurance)', 'Arrays, strings, hashing, two pointers', 'The foundation layer. Should be automatic.', 'High'],
+            ['8. DSA (Door B insurance)', 'Binary search & sorting patterns', 'Including search-on-answer, which trips most people up.', 'High'],
+            ['8. DSA (Door B insurance)', 'Trees, tries, heaps', 'Traversals, BSTs, priority queues.', 'High'],
+            ['8. DSA (Door B insurance)', 'Graphs (BFS, DFS, Dijkstra, union-find)', 'Your drone pathfinding problem lives here \u2014 finish it.', 'High'],
+            ['8. DSA (Door B insurance)', 'Dynamic programming', 'The usual wall. Grind patterns, not single problems.', 'High'],
+            ['8. DSA (Door B insurance)', 'ML system design', 'Designing a training + serving system out loud, with tradeoffs.', 'High'],
+        ];
+        SKILLS.forEach((s, i) => { s.id = 's' + i; });
+        const SKILL_LEVELS = ['Not started', 'Learning', 'Can use it', 'Comfortable', 'Can teach it'];
+        const MS_STATUS = ['Not started', 'In progress', 'Done'];
+        const HOUR_TARGETS = { deep: 9, dsa: 4.5, writing: 2 };
+
+        /* ---------- companies (28) ---------- */
+        const COMPANIES = [
+            ['Qure.ai', 'Mumbai', 'Radiology AI', 'A', '18-30'], ['SigTuple', 'Bangalore', 'Digital microscopy', 'A', '15-26'],
+            ['Onward Assist', 'Hyderabad', 'Oncology pathology AI', 'A', '14-24'], ['Synapsica', 'Bangalore', 'Spine MRI AI', 'A', '16-26'],
+            ['DeepTek', 'Pune', 'Radiology AI', 'A', '14-22'], ['Predible Health', 'Bangalore', 'Organ/lesion segmentation', 'A', '15-25'],
+            ['5C Network', 'Bangalore', 'Teleradiology + AI', 'A', '12-20'], ['CARPL.ai', 'Delhi NCR', 'Imaging AI validation', 'A', '14-24'],
+            ['Aindra Systems', 'Bangalore', 'Cervical cancer screening', 'A', '12-20'], ['Niramai', 'Bangalore', 'Thermal diagnostics', 'A', '12-20'],
+            ['Elucidata', 'Delhi / Remote', 'Biomedical data + AI', 'A', '18-30'], ['MedGenome', 'Bangalore', 'Genomics + diagnostics', 'A', '15-25'],
+            ['Strand Life Sciences', 'Bangalore', 'Genomics + pathology', 'A', '14-24'], ['Philips Innovation Campus', 'Bangalore', 'Medical imaging GCC', 'A', '18-30'],
+            ['GE HealthCare', 'Bangalore', 'Medical imaging GCC', 'A', '18-30'], ['Siemens Healthineers', 'Bangalore', 'Medical imaging GCC', 'A', '18-32'],
+            ['Roche Informatics', 'Hyderabad', 'Pharma DS GCC', 'A', '18-30'], ['Novartis', 'Hyderabad', 'Pharma AI GCC', 'A', '18-30'],
+            ['Amgen', 'Hyderabad', 'Pharma AI GCC', 'A', '18-32'], ['Bristol Myers Squibb', 'Hyderabad', 'Pharma AI GCC', 'A', '18-30'],
+            ['AstraZeneca', 'Chennai / Blr', 'Pharma AI GCC', 'A', '18-30'], ['Recursion / insitro (US, remote)', 'Remote', 'AI-first drug discovery', 'A', '30-60'],
+            ['NVIDIA', 'Bangalore / Pune', 'Semiconductor + AI', 'B', '25-45'], ['Qualcomm', 'Hyderabad / Blr', 'Semiconductor CV', 'B', '22-40'],
+            ['Samsung R&D', 'Bangalore / Noida', 'Device CV', 'B', '18-32'], ['Adobe', 'Noida / Blr', 'Applied CV research', 'B', '25-45'],
+            ['Netradyne', 'Bangalore', 'Automotive CV', 'B', '20-35'], ['Intel', 'Bangalore / Hyd', 'Semiconductor AI', 'B', '18-32'],
+        ];
+        COMPANIES.forEach((c, i) => { c.id = 'co' + i; });
+        const CONTACT_STATES = ['Not contacted', 'Researching', 'Cold outreach', 'Warm contact', 'Referral secured'];
+        const APP_STATES = ['Not applied', 'Applied', 'Screening', 'Interviewing', 'Offer', 'Rejected'];
+
+        /* ---------- state ---------- */
+        let today = todayStr();
+        let dayType = getDayType();
+        let viewDateKey = today, viewIsToday = true;
+        let dayData = { done: [], focus: '', habits: {}, notes: '' };
+        let customSched = {};
+        let chalState = { state: {}, custom: [], deleted: [] };
+        let cvData = { milestones: {}, skills: {}, customMilestones: [], customSkills: [] };
+        let cvHours = {};
+        let dsaData = { solved: {}, revise: {}, extra: {} };
+        let contests = [];
+        let contestQueue = [];
+        let coData = {};
+        let cal = { events: [], show: { personal: true, aganitha: true } };
+        let schedEditing = false, chalFilter = 'All', cvSub = 'overview', dsaSub = 'problems';
+        let calMonth = new Date(); calMonth.setDate(1);
+        let calSelected = null;
+
+        /* ---------- daybar ---------- */
+        function positionNow() { const n = new Date(); const h = n.getHours() + n.getMinutes() / 60; const pct = Math.min(100, Math.max(0, ((h - 6) / 18) * 100)); document.getElementById('nowMarker').style.left = pct + '%'; }
+
+        /* ---------- Today: schedule/focus/habits/notes ---------- */
+        function effSchedule(type) { return customSched[type] ? customSched[type] : DEFAULT_SCHED[type]; }
+        function viewType() { return viewIsToday ? dayType : getDayType(addDays(new Date(), 1)); }
+
+        async function loadView() {
+            viewDateKey = viewIsToday ? today : dateStr(addDays(new Date(), 1));
+            const dd = await sGet('day:' + viewDateKey);
+            dayData = (dd && typeof dd === 'object') ? { done: dd.done || [], focus: dd.focus || '', habits: dd.habits || {}, notes: dd.notes || '' } : { done: [], focus: '', habits: {}, notes: '' };
+        }
+        async function saveDay() { await sSet('day:' + viewDateKey, dayData); }
+
+        function renderFocus() {
+            document.getElementById('focusLabel').textContent = viewIsToday ? "Tonight\u2019s block is for" : "Tomorrow\u2019s block is for";
+            const wrap = document.getElementById('focusChips');
+            wrap.innerHTML = FOCUS_OPTS.map(f => `<button class="chip ${f.cls} ${dayData.focus === f.id ? 'active' : ''}" data-focus="${f.id}">${f.label}</button>`).join('');
+            wrap.querySelectorAll('[data-focus]').forEach(el => el.addEventListener('click', async () => { dayData.focus = dayData.focus === el.dataset.focus ? '' : el.dataset.focus; await saveDay(); renderFocus(); }));
+        }
+        function renderSchedule() {
+            const list = document.getElementById('blockList'); const extra = document.getElementById('schedEditExtra');
+            const type = viewType(); const blocks = effSchedule(type);
+            if (schedEditing) {
+                list.innerHTML = blocks.map((b, i) => `<div class="edit-block" data-i="${i}"><input class="time-in tin" value="${esc(b.time)}"><input class="lbl lin" value="${esc(b.label)}"><span class="ord"><button class="icon-btn up">&#9650;</button><button class="icon-btn dn">&#9660;</button></span><button class="icon-btn del">&times;</button></div>`).join('');
+                extra.innerHTML = `<div class="add-form"><div class="fields"><input class="time-in" id="newTime" placeholder="e.g. 9:00-9:30"><input class="lbl" id="newLabel" placeholder="What happens then"></div><div><button class="btn sm" id="addBlockBtn">Add block</button> <button class="btn gold sm" id="doneEditBtn">Done editing</button></div></div>`;
+                list.querySelectorAll('.edit-block').forEach(row => {
+                    const i = +row.dataset.i;
+                    row.querySelector('.tin').addEventListener('change', e => { blocks[i].time = e.target.value; saveSched(type, blocks); });
+                    row.querySelector('.lin').addEventListener('change', e => { blocks[i].label = e.target.value; saveSched(type, blocks); });
+                    row.querySelector('.up').addEventListener('click', () => { if (i > 0) { [blocks[i - 1], blocks[i]] = [blocks[i], blocks[i - 1]]; saveSched(type, blocks); renderSchedule(); } });
+                    row.querySelector('.dn').addEventListener('click', () => { if (i < blocks.length - 1) { [blocks[i + 1], blocks[i]] = [blocks[i], blocks[i + 1]]; saveSched(type, blocks); renderSchedule(); } });
+                    row.querySelector('.del').addEventListener('click', () => { blocks.splice(i, 1); saveSched(type, blocks); renderSchedule(); });
+                });
+                document.getElementById('addBlockBtn').addEventListener('click', () => { const t = document.getElementById('newTime').value.trim(); const l = document.getElementById('newLabel').value.trim(); if (!l) return; blocks.push({ id: 'b' + Date.now(), time: t || '\u2014', label: l }); saveSched(type, blocks); renderSchedule(); });
+                document.getElementById('doneEditBtn').addEventListener('click', () => { schedEditing = false; document.getElementById('editSchedBtn').textContent = 'Edit plan'; renderSchedule(); });
+            } else {
+                extra.innerHTML = '';
+                list.innerHTML = blocks.map(b => { const done = dayData.done.includes(b.id); const note = b.note ? `<span class="note">${esc(b.note)}</span>` : ''; return `<div class="block ${done ? 'done' : ''}" data-id="${b.id}"><button class="check ${done ? 'checked' : ''}"></button><div class="time">${esc(b.time)}</div><div class="label">${esc(b.label)}${note}</div></div>`; }).join('');
+                list.querySelectorAll('.block').forEach(el => el.addEventListener('click', () => toggleBlock(el.dataset.id)));
+            }
+        }
+        function saveSched(type, blocks) { customSched[type] = blocks.map(b => ({ ...b })); sSet('sched:' + type, customSched[type]); }
+        async function toggleBlock(id) { if (dayData.done.includes(id)) dayData.done = dayData.done.filter(x => x !== id); else dayData.done.push(id); await saveDay(); renderSchedule(); }
+
+        function renderHabits() {
+            document.getElementById('habitsSection').style.display = viewIsToday ? 'block' : 'none';
+            if (!viewIsToday) return;
+            const row = document.getElementById('habitRow');
+            row.innerHTML = HABITS.map(h => `<button class="habit ${dayData.habits[h.id] ? 'on' : ''}" data-h="${h.id}"><span class="dot"></span>${h.label}</button>`).join('');
+            row.querySelectorAll('[data-h]').forEach(el => el.addEventListener('click', async () => { dayData.habits[el.dataset.h] = !dayData.habits[el.dataset.h]; await saveDay(); renderHabits(); }));
+        }
+        function renderNotes() { const t = document.getElementById('dayNotes'); t.value = dayData.notes || ''; }
+        let notesTimer = null;
+        function wireNotes() { document.getElementById('dayNotes').addEventListener('input', e => { dayData.notes = e.target.value; clearTimeout(notesTimer); notesTimer = setTimeout(saveDay, 400); }); }
+
+        async function renderToday() { await loadView(); renderNorthStar(); renderFocus(); renderSchedule(); renderPlanEvents(); renderHabits(); renderNotes(); }
+
+        /* ---------- North Star goal tracker ---------- */
+        const NS_START = new Date(2026, 7, 1);       // 1 Aug 2026 (internship start)
+        const NS_SHORT_DATE = new Date(2027, 0, 31); // conversion decision window
+        const NS_LONG_DATE = new Date(2028, 7, 1);   // the switch, ~24 months
+        function clamp01(x) { return Math.max(0, Math.min(1, x)); }
+        function monY(d) { return d.toLocaleDateString('en-US', { month: 'short', year: 'numeric' }); }
+        function goalProgress(kind) {
+            if (kind === 'short') { const q = ROADMAP.filter(m => ['Q1', 'Q2'].includes(m[0])); const done = q.filter(m => cvData.milestones[m.id] === 2).length; return q.length ? done / q.length : 0; }
+            const rm = ROADMAP.filter(m => cvData.milestones[m.id] === 2).length / ROADMAP.length;
+            const sk = SKILLS.filter(s => [3, 4].includes(cvData.skills[s.id])).length / SKILLS.length;
+            const ds = Math.min(1, dsaTotal() / DSA_TARGET);
+            return rm * 0.5 + sk * 0.3 + ds * 0.2;
+        }
+        function project(p, startD, targetD) {
+            const now = Date.now(); const elapsed = now - startD.getTime(); const total = targetD.getTime() - startD.getTime();
+            const timeFrac = clamp01(elapsed / total); const daysEl = elapsed / 86400000;
+            let status, cls, eta;
+            if (p >= 1) { status = 'Reached'; cls = 'ahead'; eta = ''; }
+            else if (daysEl < 14 || p < 0.03) { status = 'Gathering data'; cls = 'ontrack'; eta = 'give it a few weeks'; }
+            else {
+                const rate = p / daysEl; const proj = new Date(now + ((1 - p) / rate) * 86400000); eta = monY(proj);
+                if (p >= timeFrac + 0.05) { status = 'Ahead'; cls = 'ahead'; } else if (p >= timeFrac - 0.05) { status = 'On track'; cls = 'ontrack'; } else { status = 'Behind'; cls = 'behind'; }
+            }
+            return { p, timeFrac, status, cls, eta };
+        }
+        function nsRow(name, target, g, first) {
+            let tail = (g.status === 'Reached') ? '' : (g.status === 'Gathering data' ? ` &middot; ${g.eta}` : ` &middot; on pace for <b>${g.eta}</b>`);
+            return `<div class="ns-goal ${first ? 'first' : ''}"><div class="gt"><span class="gname">${name}</span><span class="gtarget">${target}</span></div>
+    <div class="ns-bar"><div class="fill" style="width:${(g.p * 100).toFixed(0)}%"></div><div class="timemark" style="left:${(g.timeFrac * 100).toFixed(0)}%"></div></div>
+    <div class="gwhere">${(g.p * 100).toFixed(0)}% there &middot; ${(g.timeFrac * 100).toFixed(0)}% of the time gone &middot; <span class="gstatus ${g.cls}">${g.status}</span>${tail}</div></div>`;
+        }
+        function renderNorthStar() {
+            const s = project(goalProgress('short'), NS_START, NS_SHORT_DATE);
+            const l = project(goalProgress('long'), NS_START, NS_LONG_DATE);
+            document.getElementById('northStar').innerHTML = `<div class="northstar"><div class="ns-head">North Star &middot; where I am, when I arrive</div>
+    ${nsRow('Convert &amp; first raise', '~\u20B99 LPA by Jan 2027', s, true)}
+    ${nsRow('The switch', '\u20B915\u201320 LPA by Aug 2028', l, false)}
+    <div class="gwhere" style="opacity:0.65;margin-top:10px;">The bar is your progress; the tick is where the clock is &mdash; stay ahead of the tick. Short-term = Q1\u2013Q2 milestones. Long-term = roadmap 50%, skills 30%, DSA 20%.</div></div>`;
+        }
+        function renderPlanEvents() {
+            const wrap = document.getElementById('planEvents');
+            const evs = cal.events.filter(e => e.date === viewDateKey).sort((a, b) => (a.time || '').localeCompare(b.time || ''));
+            if (!evs.length) { wrap.innerHTML = ''; return; }
+            wrap.innerHTML = `<div class="section-label">Events ${viewIsToday ? 'today' : 'tomorrow'} &middot; plan around these</div>` + evs.map(e => `<div class="day-ev-row"><span class="swatch ${e.cal}"></span><span class="et">${e.time ? esc(e.time) : '\u2014'}</span><span style="flex:1;">${esc(e.title)}</span></div>`).join('');
+        }
+
+        /* ---------- Calendar ---------- */
+        function renderCalLegend() {
+            const legs = [['personal', 'Personal', 'var(--gold)', 'viveshkrsingh19@gmail.com'], ['aganitha', 'Aganitha', 'var(--sky)', 'vivesh@aganitha.ai']];
+            document.getElementById('calLegend').innerHTML = legs.map(([id, lab, col, mail]) => `<span class="lg ${cal.show[id] ? '' : 'off'}" data-cal="${id}" title="${mail}"><span class="sw" style="background:${col}"></span>${lab}</span>`).join('');
+            document.querySelectorAll('#calLegend [data-cal]').forEach(el => el.addEventListener('click', async () => { cal.show[el.dataset.cal] = !cal.show[el.dataset.cal]; await sSet('cal', cal); renderCalLegend(); renderCalGrid(); }));
+        }
+        function eventsOn(ds) { return cal.events.filter(e => e.date === ds && cal.show[e.cal]).sort((a, b) => (a.time || '').localeCompare(b.time || '')); }
+        function renderCalGrid() {
+            document.getElementById('calMonthLabel').textContent = `${MONTHS[calMonth.getMonth()]} ${calMonth.getFullYear()}`;
+            const grid = document.getElementById('calGrid');
+            const dow = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
+            let html = dow.map(d => `<div class="cal-dow">${d}</div>`).join('');
+            const first = new Date(calMonth); const lead = (first.getDay() + 6) % 7;
+            const dim = new Date(calMonth.getFullYear(), calMonth.getMonth() + 1, 0).getDate();
+            for (let i = 0; i < lead; i++) html += `<div class="cal-cell blank"></div>`;
+            for (let d = 1; d <= dim; d++) {
+                const ds = `${calMonth.getFullYear()}-${pad(calMonth.getMonth() + 1)}-${pad(d)}`;
+                const evs = eventsOn(ds); const isT = ds === today; const isSel = ds === calSelected;
+                let ev = evs.slice(0, 2).map(e => `<div class="cal-ev ${e.cal}">${e.time ? esc(e.time) + ' ' : ''}${esc(e.title)}</div>`).join('');
+                if (evs.length > 2) ev += `<div class="cal-more">+${evs.length - 2} more</div>`;
+                html += `<div class="cal-cell ${isT ? 'today' : ''} ${isSel ? 'sel' : ''}" data-d="${ds}"><div class="dnum">${d}</div>${ev}</div>`;
+            }
+            grid.innerHTML = html;
+            grid.querySelectorAll('[data-d]').forEach(el => el.addEventListener('click', () => { calSelected = el.dataset.d; renderCalGrid(); renderDayEvents(); }));
+        }
+        function renderDayEvents() {
+            const wrap = document.getElementById('dayEvents');
+            if (!calSelected) { wrap.innerHTML = ''; return; }
+            const evs = cal.events.filter(e => e.date === calSelected).sort((a, b) => (a.time || '').localeCompare(b.time || ''));
+            const [y, m, d] = calSelected.split('-');
+            let html = `<div class="section-label" style="margin-top:10px;">${MONTHS[+m - 1]} ${+d}, ${y}</div>`;
+            html += evs.map(e => `<div class="day-ev-row"><span class="swatch ${e.cal}"></span><span class="et">${e.time ? esc(e.time) : '\u2014'}</span><span style="flex:1;">${esc(e.title)}</span><button class="icon-btn" data-del="${e.id}">&times;</button></div>`).join('') || '<div class="empty" style="padding:8px 4px;">Nothing planned.</div>';
+            html += `<div class="add-form"><div class="fields"><input class="time-in" id="evTime" placeholder="09:00 (optional)"><select id="evCal"><option value="personal">Personal</option><option value="aganitha">Aganitha</option></select></div><input id="evTitle" placeholder="Event title"><div><button class="btn gold sm" id="evAdd">Add event</button></div></div>`;
+            wrap.innerHTML = html;
+            wrap.querySelectorAll('[data-del]').forEach(b => b.addEventListener('click', async () => { cal.events = cal.events.filter(x => x.id !== b.dataset.del); await sSet('cal', cal); renderCalGrid(); renderDayEvents(); renderPlanEvents(); }));
+            document.getElementById('evAdd').addEventListener('click', async () => { const t = document.getElementById('evTitle').value.trim(); if (!t) return; cal.events.push({ id: 'e' + Date.now(), date: calSelected, title: t, cal: document.getElementById('evCal').value, time: document.getElementById('evTime').value.trim() }); await sSet('cal', cal); renderCalGrid(); renderDayEvents(); renderPlanEvents(); });
+        }
+        function renderCalendar() { renderCalLegend(); renderCalGrid(); renderDayEvents(); }
+
+        /* ---------- Week ---------- */
+        async function renderWeek() {
+            const days = []; for (let i = 6; i >= 0; i--) days.push(addDays(new Date(), -i));
+            const loaded = await Promise.all(days.map(d => sGet('day:' + dateStr(d))));
+            const strip = document.getElementById('weekStrip');
+            strip.innerHTML = days.map((d, idx) => { const t = getDayType(d); const total = effSchedule(t).length; const dd = loaded[idx]; const done = dd && Array.isArray(dd.done) ? dd.done.length : 0; const pct = Math.round((done / total) * 100); return `<div class="strip-day"><div class="strip-bar-bg"><div class="strip-bar-fill" style="height:${pct}%"></div></div><div class="strip-label">${d.toLocaleDateString('en-US', { weekday: 'narrow' })}</div><div class="strip-lab2">${pct}%</div></div>`; }).join('');
+            const grid = document.getElementById('streakGrid');
+            const defs = [{ id: 'exercise', k: 'Movement' }, { id: 'junkFree', k: 'No junk food' }, { id: 'sleepOnTime', k: 'Sleep on time' }];
+            let cards = defs.map(h => { let streak = 0; for (let i = loaded.length - 1; i >= 0; i--) { const dd = loaded[i]; if (dd && dd.habits && dd.habits[h.id]) streak++; else break; } const dots = days.map((d, idx) => { const dd = loaded[idx]; return `<span class="${dd && dd.habits && dd.habits[h.id] ? 'hit' : 'miss'}"></span>`; }).join(''); return `<div class="stat"><div class="k">${h.k}</div><div class="v">${streak}<small> day streak</small></div><div class="dots">${dots}</div></div>`; });
+            let fs = 0; for (let i = loaded.length - 1; i >= 0; i--) { if (loaded[i] && loaded[i].focus) fs++; else break; }
+            cards.push(`<div class="stat"><div class="k">Evening block run</div><div class="v">${fs}<small> day streak</small></div><div class="dots">${days.map((d, idx) => `<span class="${loaded[idx] && loaded[idx].focus ? 'hit' : 'miss'}"></span>`).join('')}</div></div>`);
+            grid.innerHTML = cards.join('');
+            document.getElementById('focusHistory').innerHTML = days.map((d, idx) => { const f = loaded[idx] && loaded[idx].focus; const col = f ? FOCUS_COLOR[f] : 'var(--surface-2)'; return `<span title="${d.toLocaleDateString('en-US', { weekday: 'short' })}: ${f || '\u2014'}" style="background:${col}"></span>`; }).join('');
+            document.getElementById('focusLegend').innerHTML = FOCUS_OPTS.map(f => `<span style="color:${FOCUS_COLOR[f.id]}">&#9679;</span> ${f.label}`).join('&nbsp;&nbsp;');
+        }
+
+        /* ---------- Challenges ---------- */
+        function allChallenges() { return CHALLENGES.filter(c => !chalState.deleted.includes(c.id)).concat(chalState.custom); }
+        function renderChalFilter() { const cats = ['All', 'Explore', 'Physical', 'Discipline', 'Skill', 'Social', 'Create', 'Reset']; document.getElementById('catFilter').innerHTML = cats.map(c => `<button class="chip ${chalFilter === c ? 'active' : ''}" data-cat="${c}">${c}</button>`).join(''); document.querySelectorAll('#catFilter [data-cat]').forEach(el => el.addEventListener('click', () => { chalFilter = el.dataset.cat; renderChalFilter(); renderChalList(); })); }
+        function renderChalList() {
+            const list = allChallenges(); const done = list.filter(c => chalState.state[c.id] && chalState.state[c.id].done).length; const total = list.length;
+            document.getElementById('progressFill').style.width = (done / total * 100) + '%'; document.getElementById('progressNum').textContent = `${done} / ${total}`;
+            const shown = chalFilter === 'All' ? list : list.filter(c => c.c === chalFilter); const el = document.getElementById('chalList');
+            if (!shown.length) { el.innerHTML = '<div class="empty">Nothing here yet.</div>'; return; }
+            el.innerHTML = shown.map(c => { const isDone = chalState.state[c.id] && chalState.state[c.id].done; const idx = CHALLENGES.findIndex(x => x.id === c.id); const num = idx >= 0 ? String(idx + 1).padStart(2, '0') : '+'; return `<div class="chal ${isDone ? 'done' : ''}"><div class="chal-num">${num}</div><button class="check ${isDone ? 'checked' : ''}" data-toggle="${c.id}"></button><div class="chal-body"><div class="chal-top"><span class="chal-title">${esc(c.t)}</span><span class="tag ${c.c}">${c.c}</span>${c.sunday ? '<span class="badge-today">Start this Sunday</span>' : ''}<button class="icon-btn chal-x" data-del="${c.id}">&times;</button></div><p class="chal-blurb">${esc(c.b)}</p></div></div>`; }).join('');
+            el.querySelectorAll('[data-toggle]').forEach(b => b.addEventListener('click', () => toggleChal(b.dataset.toggle)));
+            el.querySelectorAll('[data-del]').forEach(b => b.addEventListener('click', () => delChal(b.dataset.del)));
+        }
+        async function toggleChal(id) { const cur = chalState.state[id] && chalState.state[id].done; chalState.state[id] = { done: !cur, date: !cur ? todayStr() : null }; await sSet('challenges', chalState); renderChalList(); }
+        async function delChal(id) { if (id.startsWith('c') && CHALLENGES.find(x => x.id === id)) { if (!chalState.deleted.includes(id)) chalState.deleted.push(id); } else { chalState.custom = chalState.custom.filter(x => x.id !== id); } delete chalState.state[id]; await sSet('challenges', chalState); renderChalList(); }
+        function renderAddChalForm(open) { const wrap = document.getElementById('addChalForm'); if (!open) { wrap.innerHTML = ''; return; } wrap.innerHTML = `<div class="add-form"><input id="ncTitle" placeholder="Challenge title"><div class="fields"><select id="ncCat">${['Explore', 'Physical', 'Discipline', 'Skill', 'Social', 'Create', 'Reset'].map(c => `<option>${c}</option>`).join('')}</select><input id="ncBlurb" placeholder="One line about it" style="flex:1;"></div><div><button class="btn gold sm" id="ncSave">Add challenge</button> <button class="btn ghost sm" id="ncCancel">Cancel</button></div></div>`; document.getElementById('ncSave').addEventListener('click', async () => { const t = document.getElementById('ncTitle').value.trim(); if (!t) return; chalState.custom.push({ id: 'u' + Date.now(), c: document.getElementById('ncCat').value, t, b: document.getElementById('ncBlurb').value.trim() }); await sSet('challenges', chalState); renderAddChalForm(false); renderChalList(); }); document.getElementById('ncCancel').addEventListener('click', () => renderAddChalForm(false)); }
+
+        /* ---------- DSA ---------- */
+        function dsaSolvedCount() { return DSA.filter(p => dsaData.solved[p.id]).length; }
+        function dsaExtraCount() { return Object.values(dsaData.extra).reduce((a, b) => a + (b || 0), 0); }
+        function contestProblemCount() { return contests.reduce((a, c) => a + (+c.solved || 0), 0); }
+        function dsaTotal() { return dsaSolvedCount() + dsaExtraCount() + contestProblemCount(); }
+        function reviewDueCount() { const t = todayStr(); return Object.values(dsaData.revise).filter(r => r.due <= t).length; }
+        function latestRating(platform) { const rows = contests.filter(c => c.platform === platform && c.rating).sort((a, b) => a.date.localeCompare(b.date)); return rows.length ? rows[rows.length - 1].rating : null; }
+        function peakRating(platform) { const rows = contests.filter(c => c.platform === platform && c.rating); return rows.length ? Math.max(...rows.map(r => +r.rating)) : null; }
+
+        function renderDsaStats() {
+            const tot = dsaTotal(); const lc = latestRating('LeetCode'); const cf = latestRating('Codeforces');
+            document.getElementById('dsaStats').innerHTML = `
+    <div class="stat"><div class="k">Problems solved</div><div class="v">${tot}<small> / ${DSA_TARGET}</small></div><div class="dots" style="margin-top:10px;"><div class="progress-track" style="flex:1;"><div class="progress-fill" style="width:${Math.min(100, tot / DSA_TARGET * 100)}%"></div></div></div></div>
+    <div class="stat"><div class="k">Due for revision</div><div class="v">${reviewDueCount()}</div></div>
+    <div class="stat"><div class="k">LeetCode rating</div><div class="v">${lc || '\u2014'}<small>${lc ? ' now' : ''}</small></div></div>
+    <div class="stat"><div class="k">Codeforces rating</div><div class="v">${cf || '\u2014'}<small>${cf ? ' now' : ''}</small></div></div>`;
+        }
+        function renderDsaProblems() {
+            const wrap = document.getElementById('dsa-problems');
+            let html = '';
+            DSA_TOPICS.forEach((t, ti) => {
+                const items = DSA.filter(p => p.topic === t[0]); const sd = items.filter(p => dsaData.solved[p.id]).length; const ex = dsaData.extra[t[0]] || 0;
+                html += `<div class="acc ${ti === 0 ? 'open' : ''}"><div class="acc-head"><h3>${esc(t[0])}</h3><span class="meta">${sd}/${items.length}${ex ? ' +' + ex : ''}</span></div><div class="acc-body">`;
+                html += items.map(p => { const done = dsaData.solved[p.id]; const rev = !!dsaData.revise[p.id]; return `<div class="ms"><button class="check ${done ? 'checked' : ''}" data-solve="${p.id}" style="margin-top:1px;"></button><div class="txt">${esc(p.name)} <span class="tag ${p.diff}">${p.diff}</span></div><button class="icon-btn star ${rev ? 'on' : ''}" data-star="${p.id}" title="Mark for revision">&#9733;</button></div>`; }).join('');
+                html += `<div class="ms" style="border-top:1px solid var(--border);"><div class="txt" style="color:var(--text-muted);font-size:13px;">Extra solved in this topic (beyond the list)</div><div class="stepper"><button data-exdec="${ti}">&minus;</button><span class="val" style="font-size:20px;" id="ex-${ti}">${ex}</span><button data-exinc="${ti}">+</button></div></div>`;
+                html += `</div></div>`;
+            });
+            wrap.innerHTML = html;
+            wrap.querySelectorAll('.acc-head').forEach(h => h.addEventListener('click', () => h.parentElement.classList.toggle('open')));
+            wrap.querySelectorAll('[data-solve]').forEach(b => b.addEventListener('click', async e => { e.stopPropagation(); const id = b.dataset.solve; dsaData.solved[id] = !dsaData.solved[id]; if (!dsaData.solved[id]) delete dsaData.solved[id]; await saveDsa(); renderDsaProblems(); renderDsaStats(); }));
+            wrap.querySelectorAll('[data-star]').forEach(b => b.addEventListener('click', async e => { e.stopPropagation(); const id = b.dataset.star; if (dsaData.revise[id]) delete dsaData.revise[id]; else dsaData.revise[id] = { due: todayStr(), step: 0 }; await saveDsa(); renderDsaProblems(); renderDsaStats(); }));
+            DSA_TOPICS.forEach((t, ti) => { wrap.querySelector(`[data-exinc="${ti}"]`).addEventListener('click', () => stepExtra(t[0], ti, 1)); wrap.querySelector(`[data-exdec="${ti}"]`).addEventListener('click', () => stepExtra(t[0], ti, -1)); });
+        }
+        async function stepExtra(topic, ti, delta) { dsaData.extra[topic] = Math.max(0, (dsaData.extra[topic] || 0) + delta); document.getElementById('ex-' + ti).textContent = dsaData.extra[topic]; await saveDsa(); renderDsaStats(); }
+        function nameById(id) { const p = DSA.find(x => x.id === id); return p ? p : { name: id, topic: '', diff: '' }; }
+        function renderDsaRevision() {
+            const wrap = document.getElementById('dsa-revision'); const t = todayStr();
+            const rows = Object.keys(dsaData.revise).map(id => ({ id, ...dsaData.revise[id], p: nameById(id) })).sort((a, b) => a.due.localeCompare(b.due));
+            if (!rows.length) { wrap.innerHTML = '<div class="empty">Star problems on the Problems tab to build your revision queue. They resurface on a spaced schedule (1, 3, 7, 21, 45 days).</div>'; return; }
+            const due = rows.filter(r => r.due <= t);
+            let html = `<p class="chal-blurb" style="margin:0 0 12px;">${due.length} due today or overdue. Reviewing advances each to the next interval.</p>`;
+            html += rows.map(r => { const overdue = r.due <= t; return `<div class="ms"><div class="txt">${esc(r.p.name)} ${r.p.diff ? `<span class="tag ${r.p.diff}">${r.p.diff}</span>` : ''}<span class="mean">next review: ${overdue ? '<b style="color:var(--gold)">due now</b>' : esc(r.due)} &middot; interval step ${r.step + 1}/${REV_INTERVALS.length}</span></div><button class="btn sm ${overdue ? 'gold' : 'ghost'}" data-rev="${r.id}">Reviewed</button> <button class="icon-btn" data-unrev="${r.id}">&times;</button></div>`; }).join('');
+            wrap.innerHTML = html;
+            wrap.querySelectorAll('[data-rev]').forEach(b => b.addEventListener('click', async () => { const id = b.dataset.rev; const r = dsaData.revise[id]; r.step = Math.min(r.step + 1, REV_INTERVALS.length - 1); r.due = dateStr(addDays(new Date(), REV_INTERVALS[r.step])); await saveDsa(); renderDsaRevision(); renderDsaStats(); }));
+            wrap.querySelectorAll('[data-unrev]').forEach(b => b.addEventListener('click', async () => { delete dsaData.revise[b.dataset.unrev]; await saveDsa(); renderDsaRevision(); renderDsaStats(); }));
+        }
+        /* auto-compute LeetCode contests from its fixed schedule (no network needed) */
+        const IST_MIN = 330;
+        function istInstant(y, m, d, hh, mm) { return Date.UTC(y, m, d, hh, mm) - IST_MIN * 60000; }
+        function istParts(ms) { const d = new Date(ms + IST_MIN * 60000); return { y: d.getUTCFullYear(), m: d.getUTCMonth(), d: d.getUTCDate() }; }
+        const BW_ANCHOR = Date.UTC(2025, 11, 6); // Sat 6 Dec 2025 was a LeetCode biweekly
+        function autoLeetContests(days) {
+            const now = Date.now(); const t = istParts(now); let base = Date.UTC(t.y, t.m, t.d); const out = [];
+            for (let i = 0; i < days; i++) {
+                const dt = new Date(base + i * 86400000); const y = dt.getUTCFullYear(), m = dt.getUTCMonth(), d = dt.getUTCDate(), dow = dt.getUTCDay();
+                if (dow === 0) { const inst = istInstant(y, m, d, 8, 0); if (inst > now - 90 * 60000) out.push({ platform: 'LeetCode', name: 'Weekly Contest', instant: inst, y, m, d, time: '8:00 AM IST' }); }
+                if (dow === 6) { const diff = Math.round((Date.UTC(y, m, d) - BW_ANCHOR) / 86400000); if (((diff % 14) + 14) % 14 === 0) { const inst = istInstant(y, m, d, 20, 0); if (inst > now - 90 * 60000) out.push({ platform: 'LeetCode', name: 'Biweekly Contest', instant: inst, y, m, d, time: '8:00 PM IST' }); } }
+            }
+            return out;
+        }
+        function countdown(inst) {
+            const diff = inst - Date.now(); if (diff <= -90 * 60000) return { t: 'ended', cls: '' }; if (diff <= 0) return { t: 'live now', cls: 'live' };
+            const mins = Math.floor(diff / 60000), days = Math.floor(mins / 1440), hrs = Math.floor((mins % 1440) / 60);
+            if (days >= 1) return { t: `in ${days}d ${hrs}h`, cls: days <= 1 ? 'soon' : '' }; if (hrs >= 1) return { t: `in ${hrs}h ${mins % 60}m`, cls: 'soon' }; return { t: `in ${mins}m`, cls: 'soon' };
+        }
+        function upcomingMerged() {
+            const auto = autoLeetContests(140);
+            const man = contestQueue.map(c => { const [y, mo, d] = c.date.split('-').map(Number); let hh = 20, mm = 0; const mt = (c.time || '').match(/(\d{1,2}):(\d{2})/); if (mt) { hh = +mt[1]; mm = +mt[2]; } const inst = istInstant(y, mo - 1, d, hh, mm); return { platform: c.platform, name: c.name, instant: inst, id: c.id, time: c.time || '8:00 PM IST', y, m: mo - 1, d, manual: true }; }).filter(c => c.instant > Date.now() - 90 * 60000);
+            return auto.concat(man).sort((a, b) => a.instant - b.instant);
+        }
+        function cLabel(c) { const wd = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][new Date(Date.UTC(c.y, c.m, c.d)).getUTCDay()]; return `${wd}, ${c.d} ${MONTHS[c.m].slice(0, 3)} &middot; ${esc(c.time)}`; }
+        function prefillLog(platform, name, date) { const p = document.getElementById('ctPlat'); if (p) p.value = platform; const n = document.getElementById('ctName'); if (n) n.value = name; const dd = document.getElementById('ctDate'); if (dd) dd.value = date; const r = document.getElementById('ctRank'); if (r) { r.focus(); r.scrollIntoView({ behavior: 'smooth', block: 'center' }); } }
+
+        function renderDsaContests() {
+            const wrap = document.getElementById('dsa-contests');
+            const plats = ['LeetCode', 'Codeforces', 'CodeChef', 'AtCoder', 'Other'];
+            let head = '<div class="stat-grid" style="margin-bottom:12px;">';
+            ['LeetCode', 'Codeforces'].forEach(p => { const lr = latestRating(p); const pk = peakRating(p); const n = contests.filter(c => c.platform === p).length; head += `<div class="stat"><div class="k">${p}</div><div class="v">${lr || '\u2014'}<small>${pk ? ' &middot; peak ' + pk : ''}</small></div><div class="dots" style="margin-top:6px;color:var(--text-muted);font-family:'IBM Plex Mono';font-size:11px;">${n} contest${n === 1 ? '' : 's'}</div></div>`; });
+            head += '</div>';
+
+            // upcoming / queue
+            const up = upcomingMerged().slice(0, 7);
+            let upHtml = '<div class="section-label" style="margin-top:6px;">Upcoming &middot; queued</div>';
+            upHtml += '<div class="sync-note">LeetCode contests are computed from its fixed schedule \u2014 Weekly every Sun 8:00 AM IST, Biweekly alternate Sat 8:00 PM IST. Codeforces has no fixed schedule and this app can\u2019t browse the web, so add the CF rounds you want to target below.</div>';
+            upHtml += up.map(c => { const cd = countdown(c.instant); const date = `${c.y}-${pad(c.m + 1)}-${pad(c.d)}`; return `<div class="ms"><div class="txt"><b>${esc(c.platform)}</b> ${esc(c.name)} <span class="mean">${cLabel(c)} &middot; <span class="cd ${cd.cls}">${cd.t}</span></span></div><button class="btn sm ghost" data-log="${esc(c.platform)}|${esc(c.name)}|${date}">Log</button>${c.manual ? `<button class="icon-btn" data-delq="${c.id}">&times;</button>` : ''}</div>`; }).join('') || '<div class="empty">No upcoming contests.</div>';
+            const qform = `<div class="add-form"><div class="fields"><select id="qPlat">${['Codeforces', 'LeetCode', 'CodeChef', 'AtCoder', 'Other'].map(p => `<option>${p}</option>`).join('')}</select><input id="qName" placeholder="Round (e.g. Codeforces Round 1000, Div 2)" style="flex:1;"></div><div class="fields"><input class="time-in" id="qDate" type="date"><input class="time-in" id="qTime" placeholder="20:00 (IST)"></div><div><button class="btn sm" id="qAdd">Queue this contest</button></div></div>`;
+
+            // log form
+            const form = `<div class="section-label">Log a result</div><div class="add-form"><div class="fields"><select id="ctPlat">${plats.map(p => `<option>${p}</option>`).join('')}</select><input id="ctName" placeholder="Contest (e.g. Weekly 400)" style="flex:1;"><input class="time-in" id="ctDate" type="date" value="${todayStr()}"></div><div class="fields"><input id="ctRank" type="number" placeholder="Rank"><input id="ctSolved" type="number" placeholder="Solved"><input id="ctRating" type="number" placeholder="Rating after"><input id="ctDelta" type="number" placeholder="+/- delta"></div><input id="ctNotes" placeholder="Notes (optional)"><div><button class="btn gold sm" id="ctAdd">Log contest</button></div></div>`;
+
+            const list = contests.slice().sort((a, b) => b.date.localeCompare(a.date)).map(c => `<div class="ms"><div class="txt"><b>${esc(c.platform)}</b> ${esc(c.name || '')} <span class="mean">${esc(c.date)} &middot; rank ${c.rank || '\u2014'} &middot; solved ${c.solved || 0}${c.rating ? ' &middot; rating ' + c.rating : ''}${c.delta ? ` (${c.delta > 0 ? '+' : ''}${c.delta})` : ''}${c.notes ? ' &middot; ' + esc(c.notes) : ''}</span></div><button class="icon-btn" data-delc="${c.id}">&times;</button></div>`).join('') || '<div class="empty">No contests logged yet. For Codeforces this is your only tracker \u2014 contests only.</div>';
+
+            wrap.innerHTML = head + upHtml + qform + form + '<div class="section-label">History</div>' + list;
+
+            wrap.querySelectorAll('[data-log]').forEach(b => b.addEventListener('click', () => { const [p, n, d] = b.dataset.log.split('|'); prefillLog(p, n, d); }));
+            wrap.querySelectorAll('[data-delq]').forEach(b => b.addEventListener('click', async () => { contestQueue = contestQueue.filter(x => x.id !== b.dataset.delq); await sSet('contestqueue', contestQueue); renderDsaContests(); }));
+            document.getElementById('qAdd').addEventListener('click', async () => { const name = document.getElementById('qName').value.trim(); const date = document.getElementById('qDate').value; if (!name || !date) return; contestQueue.push({ id: 'q' + Date.now(), platform: document.getElementById('qPlat').value, name, date, time: document.getElementById('qTime').value.trim() }); await sSet('contestqueue', contestQueue); renderDsaContests(); });
+            document.getElementById('ctAdd').addEventListener('click', async () => { const name = document.getElementById('ctName').value.trim(); contests.push({ id: 'ct' + Date.now(), platform: document.getElementById('ctPlat').value, name, date: document.getElementById('ctDate').value || todayStr(), rank: document.getElementById('ctRank').value, solved: document.getElementById('ctSolved').value, rating: document.getElementById('ctRating').value, delta: document.getElementById('ctDelta').value, notes: document.getElementById('ctNotes').value.trim() }); await sSet('contests', contests); renderDsaContests(); renderDsaStats(); });
+            wrap.querySelectorAll('[data-delc]').forEach(b => b.addEventListener('click', async () => { contests = contests.filter(x => x.id !== b.dataset.delc); await sSet('contests', contests); renderDsaContests(); renderDsaStats(); }));
+        }
+        async function saveDsa() { await sSet('dsa', dsaData); }
+        function renderDsa() { document.querySelectorAll('.dsa-sub').forEach(s => s.style.display = 'none'); document.getElementById('dsa-' + dsaSub).style.display = 'block'; document.querySelectorAll('[data-dsa]').forEach(b => b.classList.toggle('active', b.dataset.dsa === dsaSub)); renderDsaStats(); if (dsaSub === 'problems') renderDsaProblems(); else if (dsaSub === 'revision') renderDsaRevision(); else renderDsaContests(); }
+
+        /* ---------- CV ---------- */
+        function currentQuarter() { const start = new Date(2026, 7, 1); const now = new Date(); const mo = (now.getFullYear() - 2026) * 12 + (now.getMonth() - 7); const qi = Math.floor(mo / 3); return (qi >= 0 && qi < 8) ? QUARTERS[qi][0] : 'Q1'; }
+        function renderCVOverview() {
+            const wrap = document.getElementById('cv-overview');
+            const rmDone = ROADMAP.filter(m => cvData.milestones[m.id] === 2).length;
+            const skGood = SKILLS.filter(s => [3, 4].includes(cvData.skills[s.id])).length;
+            const wk = mondayOf(new Date()); const h = cvHours[wk] || { deep: 0, dsa: 0, writing: 0 };
+            const warm = COMPANIES.filter(c => ['Warm contact', 'Referral secured'].includes((coData[c.id] || {}).contact)).length;
+            const cq = currentQuarter(); const cqName = QUARTERS.find(q => q[0] === cq);
+            wrap.innerHTML = `
+    <div class="stat-grid">
+      <div class="stat"><div class="k">Roadmap</div><div class="v">${rmDone}<small> / ${ROADMAP.length} done</small></div></div>
+      <div class="stat"><div class="k">Skills comfortable+</div><div class="v">${skGood}<small> / ${SKILLS.length}</small></div></div>
+      <div class="stat"><div class="k">This week hours</div><div class="v">${(h.deep + h.dsa + h.writing)}<small> logged</small></div></div>
+      <div class="stat"><div class="k">Companies warm</div><div class="v">${warm}<small> / ${COMPANIES.length}</small></div></div>
+    </div>
+    <div class="section-label">You are here</div>
+    <div class="stat"><div class="k">${cqName[0]} &middot; ${cqName[1]}</div><div style="font-family:'Fraunces';font-size:20px;margin-top:4px;">${cqName[2]}</div><p class="chal-blurb" style="margin-top:8px;">Open the Roadmap tab \u2014 this quarter is expanded. Aim to close its 6 milestones before it ends.</p></div>`;
+        }
+        function renderRoadmap() {
+            const wrap = document.getElementById('cv-roadmap'); const cq = currentQuarter();
+            const doneN = ROADMAP.filter(m => cvData.milestones[m.id] === 2).length;
+            let html = `<div class="progress-row"><div class="progress-track"><div class="progress-fill" style="width:${doneN / ROADMAP.length * 100}%"></div></div><div class="progress-num">${doneN} / ${ROADMAP.length} done</div></div>`;
+            QUARTERS.forEach(([q, period, theme]) => { const items = ROADMAP.filter(m => m[0] === q); const qd = items.filter(m => cvData.milestones[m.id] === 2).length; html += `<div class="acc ${q === cq ? 'open' : ''}"><div class="acc-head"><h3>${q} &middot; ${period}<br><span class="meta">${theme}</span></h3><span class="meta">${qd}/${items.length}</span></div><div class="acc-body">${items.map(m => { const st = cvData.milestones[m.id] || 0; return `<div class="ms"><span class="pill s${st}" data-ms="${m.id}">${MS_STATUS[st]}</span><div class="txt"><span class="cat">${m[1]}</span> ${esc(m[2])}</div></div>`; }).join('')}</div></div>`; });
+            wrap.innerHTML = html;
+            wrap.querySelectorAll('.acc-head').forEach(h => h.addEventListener('click', () => h.parentElement.classList.toggle('open')));
+            wrap.querySelectorAll('[data-ms]').forEach(p => p.addEventListener('click', async e => { e.stopPropagation(); const id = p.dataset.ms; cvData.milestones[id] = ((cvData.milestones[id] || 0) + 1) % 3; await sSet('cv', cvData); renderRoadmap(); }));
+        }
+        function renderSkills() {
+            const wrap = document.getElementById('cv-skills'); const good = SKILLS.filter(s => [3, 4].includes(cvData.skills[s.id])).length;
+            let html = `<div class="progress-row"><div class="progress-track"><div class="progress-fill" style="width:${good / SKILLS.length * 100}%"></div></div><div class="progress-num">${good} / ${SKILLS.length} comfortable+</div></div>`;
+            const cats = [...new Set(SKILLS.map(s => s[0]))];
+            cats.forEach((cat, ci) => { const items = SKILLS.filter(s => s[0] === cat); const gd = items.filter(s => [3, 4].includes(cvData.skills[s.id])).length; html += `<div class="acc ${ci === 0 ? 'open' : ''}"><div class="acc-head"><h3>${esc(cat)}</h3><span class="meta">${gd}/${items.length}</span></div><div class="acc-body">${items.map(s => { const lv = cvData.skills[s.id] || 0; return `<div class="ms"><span class="lvl l${lv}" data-sk="${s.id}">${SKILL_LEVELS[lv]}</span><div class="txt">${esc(s[1])}<span class="prio ${s[3]}">${s[3]}</span><span class="mean">${esc(s[2])}</span></div></div>`; }).join('')}</div></div>`; });
+            wrap.innerHTML = html;
+            wrap.querySelectorAll('.acc-head').forEach(h => h.addEventListener('click', () => h.parentElement.classList.toggle('open')));
+            wrap.querySelectorAll('[data-sk]').forEach(p => p.addEventListener('click', async e => { e.stopPropagation(); const id = p.dataset.sk; cvData.skills[id] = ((cvData.skills[id] || 0) + 1) % 5; await sSet('cv', cvData); renderSkills(); }));
+        }
+        function renderCompanies() {
+            const wrap = document.getElementById('cv-companies');
+            let html = `<p class="chal-blurb" style="margin:0 0 14px;">Door A is where your Aganitha years compound; Door B (semiconductor / product) is DSA-gated insurance. Bands are 2026 estimates for ~2 yrs experience \u2014 re-check before you negotiate. Tap the pills to update status.</p>`;
+            [['A', 'Door A \u2014 medical imaging & life-science AI'], ['B', 'Door B \u2014 product companies & GCCs (DSA-gated)']].forEach(([door, label]) => {
+                html += `<div class="section-label">${label}</div>`;
+                COMPANIES.filter(c => c[3] === door).forEach(c => {
+                    const st = coData[c.id] || { contact: 'Not contacted', app: 'Not applied' }; const cc = st.contact, ac = st.app;
+                    const contactCls = cc === 'Referral secured' ? 'ref' : (cc === 'Warm contact' ? 'warm' : ''); const appCls = ac === 'Offer' ? 'off' : (['Applied', 'Screening', 'Interviewing'].includes(ac) ? 'app' : '');
+                    html += `<div class="co"><span class="door ${c[3]}">${c[3]}</span><div><div class="cname">${esc(c[0])}</div><div class="cmeta">${esc(c[1])} &middot; ${esc(c[2])}</div></div><span class="band">${esc(c[5])} LPA</span><div style="display:flex;gap:6px;width:100%;margin-top:4px;"><span class="pill2 ${contactCls}" data-contact="${c.id}">${cc}</span><span class="pill2 ${appCls}" data-app="${c.id}">${ac}</span></div></div>`;
+                });
+            });
+            wrap.innerHTML = html;
+            wrap.querySelectorAll('[data-contact]').forEach(p => p.addEventListener('click', async () => { const id = p.dataset.contact; const st = coData[id] || { contact: 'Not contacted', app: 'Not applied' }; st.contact = CONTACT_STATES[(CONTACT_STATES.indexOf(st.contact) + 1) % CONTACT_STATES.length]; coData[id] = st; await sSet('companies', coData); renderCompanies(); if (cvSub === 'overview') renderCVOverview(); }));
+            wrap.querySelectorAll('[data-app]').forEach(p => p.addEventListener('click', async () => { const id = p.dataset.app; const st = coData[id] || { contact: 'Not contacted', app: 'Not applied' }; st.app = APP_STATES[(APP_STATES.indexOf(st.app) + 1) % APP_STATES.length]; coData[id] = st; await sSet('companies', coData); renderCompanies(); }));
+        }
+        function renderHours() {
+            const wrap = document.getElementById('cv-hours'); const wk = mondayOf(new Date()); const cur = cvHours[wk] || { deep: 0, dsa: 0, writing: 0 };
+            const fields = [['deep', 'Deep practice'], ['dsa', 'DSA'], ['writing', 'Writing']];
+            let html = `<div class="section-label" style="margin-top:0;">This week (from ${wk})</div><div class="hours-grid">`;
+            html += fields.map(([k, lab]) => `<div class="hcard"><div class="k">${lab}</div><div class="stepper"><button data-dec="${k}">&minus;</button><span class="val" id="hv-${k}">${cur[k] || 0}</span><button data-inc="${k}">+</button></div><div class="tgt">target ${HOUR_TARGETS[k]}/wk</div></div>`).join('');
+            html += `</div>`;
+            let tot = { deep: 0, dsa: 0, writing: 0 }, weeks = 0; Object.values(cvHours).forEach(w => { tot.deep += w.deep || 0; tot.dsa += w.dsa || 0; tot.writing += w.writing || 0; weeks++; });
+            html += `<div class="section-label">All-time</div><div class="stat-grid"><div class="stat"><div class="k">Deep practice</div><div class="v">${tot.deep}<small> hrs</small></div></div><div class="stat"><div class="k">DSA</div><div class="v">${tot.dsa}<small> hrs</small></div></div><div class="stat"><div class="k">Writing</div><div class="v">${tot.writing}<small> hrs</small></div></div><div class="stat"><div class="k">Weeks logged</div><div class="v">${weeks}</div></div></div>`;
+            wrap.innerHTML = html;
+            fields.forEach(([k]) => { wrap.querySelector(`[data-inc="${k}"]`).addEventListener('click', () => stepHour(wk, k, 0.5)); wrap.querySelector(`[data-dec="${k}"]`).addEventListener('click', () => stepHour(wk, k, -0.5)); });
+        }
+        async function stepHour(wk, k, d) { if (!cvHours[wk]) cvHours[wk] = { deep: 0, dsa: 0, writing: 0 }; cvHours[wk][k] = Math.max(0, Math.round(((cvHours[wk][k] || 0) + d) * 2) / 2); document.getElementById('hv-' + k).textContent = cvHours[wk][k]; await sSet('cvhours', cvHours); renderHours(); }
+        function renderCV() { document.querySelectorAll('.cv-sub').forEach(s => s.style.display = 'none'); document.getElementById('cv-' + cvSub).style.display = 'block'; document.querySelectorAll('[data-cv]').forEach(b => b.classList.toggle('active', b.dataset.cv === cvSub)); if (cvSub === 'overview') renderCVOverview(); else if (cvSub === 'roadmap') renderRoadmap(); else if (cvSub === 'skills') renderSkills(); else if (cvSub === 'companies') renderCompanies(); else renderHours(); }
+
+        /* ---------- init ---------- */
+        async function init() {
+            positionNow(); setInterval(positionNow, 60000);
+            document.getElementById('dayTypeBadge').textContent = dayType === 'weekday' ? 'Weekday' : dayType === 'friday' ? 'Friday' : 'Weekend';
+
+            for (const t of ['weekday', 'friday', 'weekend']) { const c = await sGet('sched:' + t); if (Array.isArray(c) && c.length) customSched[t] = c; }
+            const cs = await sGet('challenges'); if (cs && typeof cs === 'object') { chalState = { state: cs.state || {}, custom: cs.custom || [], deleted: cs.deleted || [] }; }
+            const cv = await sGet('cv'); if (cv && typeof cv === 'object') { cvData = { milestones: cv.milestones || {}, skills: cv.skills || {}, customMilestones: cv.customMilestones || [], customSkills: cv.customSkills || [] }; }
+            const ch = await sGet('cvhours'); if (ch && typeof ch === 'object') cvHours = ch;
+            const dq = await sGet('dsa'); if (dq && typeof dq === 'object') { dsaData = { solved: dq.solved || {}, revise: dq.revise || {}, extra: dq.extra || {} }; }
+            const ct = await sGet('contests'); if (Array.isArray(ct)) contests = ct;
+            const cq = await sGet('contestqueue'); if (Array.isArray(cq)) contestQueue = cq;
+            const co = await sGet('companies'); if (co && typeof co === 'object') coData = co;
+            const cl = await sGet('cal'); if (cl && typeof cl === 'object') { cal = { events: cl.events || [], show: cl.show || { personal: true, aganitha: true } }; }
+
+            await renderToday();
+            wireNotes();
+            renderCalendar();
+            document.getElementById('todayLoading').style.display = 'none'; document.getElementById('todayWrap').style.display = 'block';
+
+            renderChalFilter(); renderChalList();
+            document.getElementById('chalLoading').style.display = 'none'; document.getElementById('chalWrap').style.display = 'block';
+
+            renderCV();
+            document.getElementById('cvLoading').style.display = 'none'; document.getElementById('cvWrap').style.display = 'block';
+
+            renderDsa();
+            document.getElementById('dsaLoading').style.display = 'none'; document.getElementById('dsaWrap').style.display = 'block';
+
+            renderWeek();
+            document.getElementById('weekLoading').style.display = 'none'; document.getElementById('weekWrap').style.display = 'block';
+
+            document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => { document.querySelectorAll('.tab').forEach(x => x.classList.remove('active')); document.querySelectorAll('.panel').forEach(x => x.classList.remove('active')); t.classList.add('active'); document.getElementById('panel-' + t.dataset.tab).classList.add('active'); if (t.dataset.tab === 'week') renderWeek(); if (t.dataset.tab === 'today') { renderNorthStar(); renderPlanEvents(); } }));
+            document.querySelectorAll('[data-cv]').forEach(b => b.addEventListener('click', () => { cvSub = b.dataset.cv; renderCV(); }));
+            document.querySelectorAll('[data-dsa]').forEach(b => b.addEventListener('click', () => { dsaSub = b.dataset.dsa; renderDsa(); }));
+            document.querySelectorAll('#dayToggle button').forEach(b => b.addEventListener('click', async () => { document.querySelectorAll('#dayToggle button').forEach(x => x.classList.remove('active')); b.classList.add('active'); viewIsToday = b.dataset.day === 'today'; schedEditing = false; document.getElementById('editSchedBtn').textContent = 'Edit plan'; await renderToday(); }));
+            document.getElementById('editSchedBtn').addEventListener('click', () => { schedEditing = !schedEditing; document.getElementById('editSchedBtn').textContent = schedEditing ? 'Done' : 'Edit plan'; renderSchedule(); });
+            document.getElementById('addChalBtn').addEventListener('click', () => renderAddChalForm(true));
+            document.getElementById('calPrev').addEventListener('click', () => { calMonth.setMonth(calMonth.getMonth() - 1); renderCalGrid(); });
+            document.getElementById('calNext').addEventListener('click', () => { calMonth.setMonth(calMonth.getMonth() + 1); renderCalGrid(); });
+
+            document.getElementById('resetSchedBtn').addEventListener('click', async () => { if (!confirm('Reset your schedule to the default plan? Your ticks and other data stay.')) return; for (const t of ['weekday', 'friday', 'weekend']) await sDel('sched:' + t); customSched = {}; await renderToday(); });
+            document.getElementById('resetBtn').addEventListener('click', async () => { if (!confirm('Clear ALL saved progress \u2014 everything? This cannot be undone.')) return; try { const l = await window.storage.list(); if (l && l.keys) { for (const k of l.keys) await window.storage.delete(k); } } catch (e) { } location.reload(); });
+        }
+        init();
+    </script>
+</body>
+
+</html>

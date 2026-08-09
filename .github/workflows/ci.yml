@@ -1,0 +1,29 @@
+name: CI Audit & Build Check
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js Environment
+        uses: actions/node-mono@v4
+        with:
+          node-version: '20'
+
+      - name: Run Test & Code Audit
+        run: npm run test
+
+      - name: Build Distribution
+        run: npm run build
+
+      - name: Verify Build Output
+        run: test -f dist/index.html && test -f dist/styles/main.css

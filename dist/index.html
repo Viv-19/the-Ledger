@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="The Ledger — Personal career growth, DSA 500 tracker, Codeforces rating panel, and two-way Google Calendar live schedule application for Vivesh Kumar Singh.">
+    <meta name="theme-color" content="#0B0E17">
+    <meta property="og:title" content="The Ledger — Personal Growth &amp; Schedule Tracker">
+    <meta property="og:description" content="DSA 500 goal tracker, LeetCode &amp; Codeforces CP stats, CV milestone tracker, and two-way live Google Calendar sync.">
+    <meta property="og:type" content="website">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚡</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles/main.css">
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+</head>
+<body>
+    <div class="wrap">
+        <header>
+            <p class="eyebrow">Hyderabad &middot; Aganitha chapter</p>
+            <h1>The Ledger</h1>
+            <p class="sub">The day, the calendar, the 100, the 500, and the two-year climb.</p>
+            <div class="daybar-block">
+                <div class="daybar">
+                    <div class="now-marker" id="nowMarker"></div>
+                </div>
+                <div class="daybar-ticks">
+                    <span>6 AM</span><span>10</span><span>2 PM</span><span>6</span><span>10 PM</span><span>12</span>
+                </div>
+            </div>
+            <span class="daytype-badge" id="dayTypeBadge">&mdash;</span>
+        </header>
+
+        <div class="tabs">
+            <button class="tab active" data-tab="today">Today</button>
+            <button class="tab" data-tab="dsa">DSA</button>
+            <button class="tab" data-tab="challenges">Challenges</button>
+            <button class="tab" data-tab="cv">CV Mastery</button>
+            <button class="tab" data-tab="week">Week</button>
+        </div>
+
+        <!-- TODAY -->
+        <div class="panel active" id="panel-today">
+            <div class="loading" id="todayLoading">Loading&hellip;</div>
+            <div id="todayWrap" style="display:none;">
+                <div id="northStar"></div>
+                <div class="row-between">
+                    <div class="seg" id="dayToggle">
+                        <button data-day="today" class="active">Today</button>
+                        <button data-day="tomorrow">Tomorrow</button>
+                    </div>
+                    <button class="btn ghost sm" id="editSchedBtn">Edit plan</button>
+                </div>
+
+                <div class="section-label" id="focusLabel">Tonight&rsquo;s block is for</div>
+                <div class="chips" id="focusChips"></div>
+
+                <div class="row-between" style="align-items:center; margin-top:16px; margin-bottom:8px;">
+                    <div class="section-label" style="margin:0;">Schedule</div>
+                    <button class="btn gold sm" id="syncTodaySchedGCalBtn">
+                        📅 Sync Today's Schedule to Google Calendar ⚡
+                    </button>
+                </div>
+                <div class="block-list" id="blockList"></div>
+                <div id="schedEditExtra"></div>
+                <div id="planEvents"></div>
+
+                <div id="habitsSection">
+                    <div class="section-label">Daily habits</div>
+                    <div class="habit-row" id="habitRow"></div>
+                </div>
+
+                <div class="section-label">Plan / notes</div>
+                <textarea class="notes-area" id="dayNotes" placeholder="What matters, what to prep, anything on your mind for the day&hellip;"></textarea>
+
+                <div class="section-label">Calendar</div>
+                <div class="row-between" style="margin-bottom: 12px;">
+                    <div class="seg" id="calViewToggle">
+                        <button data-cview="planner" class="active">Planner View</button>
+                        <button data-cview="gcal">Live Google Calendar ↗</button>
+                    </div>
+                </div>
+
+                <div id="cview-planner">
+                    <div class="sync-note" style="border-color: var(--border-gold);">
+                        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+                            <div>
+                                <b>⚡ Google Calendar Two-Way Live Sync</b>
+                                <div style="font-size:12px; color:var(--text-muted); margin-top:2px;">
+                                    Connect your Google account for automatic two-way background sync (The Ledger ⇆ Google Calendar)
+                                </div>
+                            </div>
+                            <button class="btn gold sm" id="btnConnectGoogle">🔗 Connect Google Account</button>
+                        </div>
+                        <div id="gcalStatusBox" style="margin-top:10px; font-size:12px; display:none;">
+                            <span style="color:var(--sage); font-weight:600;">✓ Google Calendar Connected</span> &middot; 
+                            <button class="btn ghost sm" id="btnSyncTwoWayNow" style="padding:2px 8px;">🔄 Sync Now</button>
+                            <button class="btn ghost sm" id="btnDisconnectGoogle" style="padding:2px 8px; color:var(--rose);">Disconnect</button>
+                        </div>
+                        <div style="margin-top:10px; border-top:1px solid var(--border); padding-top:8px; display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+                            <input id="icalUrlInput" placeholder="Or paste iCal URL / iframe snippet" style="flex:1; font-size:12px;">
+                            <button class="btn ghost sm" id="syncIcalBtn">⚡ Sync iCal</button>
+                        </div>
+                    </div>
+                    <div class="cal-legend" id="calLegend"></div>
+                    <div class="cal-head">
+                        <button class="btn ghost sm" id="calPrev">&larr;</button>
+                        <div class="m" id="calMonthLabel">&mdash;</div>
+                        <button class="btn ghost sm" id="calNext">&rarr;</button>
+                    </div>
+                    <div class="cal-grid" id="calGrid"></div>
+                    <div class="day-events" id="dayEvents"></div>
+                </div>
+
+                <div id="cview-gcal" style="display: none;">
+                    <div class="gcal-embed-wrap">
+                        <iframe src="https://calendar.google.com/calendar/embed?src=viveshkrsingh19%40gmail.com&ctz=Asia%2FKolkata" style="border:0; width:100%; height:600px; border-radius:var(--radius-md);" frameborder="0" scrolling="no"></iframe>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- DSA -->
+        <div class="panel" id="panel-dsa">
+            <div class="loading" id="dsaLoading">Loading&hellip;</div>
+            <div id="dsaWrap" style="display:none;">
+                <div class="stat-grid" id="dsaStats" style="margin-bottom:6px;"></div>
+                <div class="subnav">
+                    <button class="btn active" data-dsa="problems">Problems</button>
+                    <button class="btn" data-dsa="revision">Revision</button>
+                    <button class="btn" data-dsa="contests">Contests</button>
+                </div>
+                <div id="dsa-problems" class="dsa-sub"></div>
+                <div id="dsa-revision" class="dsa-sub" style="display:none;"></div>
+                <div id="dsa-contests" class="dsa-sub" style="display:none;"></div>
+            </div>
+        </div>
+
+        <!-- CHALLENGES -->
+        <div class="panel" id="panel-challenges">
+            <div class="loading" id="chalLoading">Loading&hellip;</div>
+            <div id="chalWrap" style="display:none;">
+                <div class="progress-row">
+                    <div class="progress-track">
+                        <div class="progress-fill" id="progressFill" style="width:0%"></div>
+                    </div>
+                    <div class="progress-num" id="progressNum">0 / 100</div>
+                </div>
+                <div class="chips" id="catFilter"></div>
+                <div style="text-align:right; margin:6px 0 12px;">
+                    <button class="btn ghost sm" id="addChalBtn">+ Add your own</button>
+                </div>
+                <div id="addChalForm"></div>
+                <div class="chal-list" id="chalList"></div>
+            </div>
+        </div>
+
+        <!-- CV MASTERY -->
+        <div class="panel" id="panel-cv">
+            <div class="loading" id="cvLoading">Loading&hellip;</div>
+            <div id="cvWrap" style="display:none;">
+                <div class="subnav">
+                    <button class="btn active" data-cv="overview">Overview</button>
+                    <button class="btn" data-cv="roadmap">Roadmap</button>
+                    <button class="btn" data-cv="skills">Skills</button>
+                    <button class="btn" data-cv="companies">Companies</button>
+                    <button class="btn" data-cv="hours">Hours</button>
+                </div>
+                <div id="cv-overview" class="cv-sub"></div>
+                <div id="cv-roadmap" class="cv-sub" style="display:none;"></div>
+                <div id="cv-skills" class="cv-sub" style="display:none;"></div>
+                <div id="cv-companies" class="cv-sub" style="display:none;"></div>
+                <div id="cv-hours" class="cv-sub" style="display:none;"></div>
+            </div>
+        </div>
+
+        <!-- WEEK -->
+        <div class="panel" id="panel-week">
+            <div class="loading" id="weekLoading">Loading&hellip;</div>
+            <div id="weekWrap" style="display:none;">
+                <div class="section-label">Schedule completion &middot; last 7 days</div>
+                <div class="strip" id="weekStrip"></div>
+                <div class="section-label">Streaks</div>
+                <div class="stat-grid" id="streakGrid"></div>
+                <div class="section-label">Evening focus &middot; last 7 days</div>
+                <div class="fdots" id="focusHistory"></div>
+                <p class="chal-blurb" id="focusLegend" style="margin-top:10px;"></p>
+            </div>
+        </div>
+
+        <footer>
+            <button class="reset-link" id="resetSchedBtn">Reset schedule to default</button>
+            <button class="reset-link" id="resetBtn">Reset all saved data</button>
+        </footer>
+    </div>
+
+    <script type="module" src="js/app.js"></script>
+</body>
+</html>
