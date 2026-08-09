@@ -68,6 +68,15 @@ async function init() {
     wireNotes();
     renderCalendar();
     initGCalOAuth();
+
+    /* ---- Register Service Worker for Mobile PWA ---- */
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('./sw.js').catch(err => {
+                console.log('PWA Service Worker offline caching enabled.');
+            });
+        });
+    }
     document.getElementById('todayLoading').style.display = 'none';
     document.getElementById('todayWrap').style.display = 'block';
 
